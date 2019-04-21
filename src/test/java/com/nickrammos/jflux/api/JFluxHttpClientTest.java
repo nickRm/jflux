@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.nickrammos.jflux.api.response.InfluxResponse;
 import com.nickrammos.jflux.api.response.InfluxResult;
-import com.nickrammos.jflux.api.response.InfluxSeries;
+import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -89,7 +89,7 @@ public class JFluxHttpClientTest {
 		when(call.execute()).thenReturn(Response.success(response));
 
 		// When
-		InfluxSeries series = client.query(query);
+		Series series = client.query(query);
 
 		// Then
 		assertThat(series).isEqualTo(response.getResults().get(0).getSeries().get(0));
@@ -170,8 +170,8 @@ public class JFluxHttpClientTest {
 	private static InfluxResponse createResponse() {
 		List<String> columns = Collections.singletonList("column");
 		List<List<Object>> values = Collections.singletonList(Collections.singletonList("value"));
-		InfluxSeries series =
-				new InfluxSeries.Builder().name("series").columns(columns).values(values).build();
+		Series series =
+				new Series.Builder().name("series").columns(columns).values(values).build();
 
 		InfluxResult result = new InfluxResult.Builder().statementId(0)
 				.series(Collections.singletonList(series))

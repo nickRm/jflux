@@ -3,6 +3,8 @@ package com.nickrammos.jflux.api.response;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.nickrammos.jflux.domain.Series;
+
 /**
  * An InfluxQL result, acts as a wrapper for the (possibly multiple) series returned.
  * <p>
@@ -17,7 +19,7 @@ import java.util.List;
 public final class InfluxResult {
 
 	private final int statementId;
-	private final List<InfluxSeries> series;
+	private final List<Series> series;
 
 	/**
 	 * Instances of this class can only be constructed using {@link Builder}.
@@ -46,7 +48,7 @@ public final class InfluxResult {
 	 *
 	 * @return this result's series, or an empty list if none are available
 	 */
-	public List<InfluxSeries> getSeries() {
+	public List<Series> getSeries() {
 		return new ArrayList<>(series);
 	}
 
@@ -61,14 +63,14 @@ public final class InfluxResult {
 	public static final class Builder {
 
 		private int statementId;
-		private List<InfluxSeries> series;
+		private List<Series> series;
 
 		public Builder statementId(int statementId) {
 			this.statementId = statementId;
 			return this;
 		}
 
-		public Builder series(List<InfluxSeries> series) {
+		public Builder series(List<Series> series) {
 			this.series = series;
 			return this;
 		}

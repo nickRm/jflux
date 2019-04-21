@@ -1,4 +1,4 @@
-package com.nickrammos.jflux.api.response;
+package com.nickrammos.jflux.domain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @see Builder
  */
-public final class InfluxSeries {
+public final class Series {
 
 	private final String name;
 	private final List<String> columns;
@@ -19,7 +19,7 @@ public final class InfluxSeries {
 	 *
 	 * @param builder used to construct the instance
 	 */
-	private InfluxSeries(Builder builder) {
+	private Series(Builder builder) {
 		name = builder.name;
 		columns = builder.columns;
 		values = builder.values;
@@ -58,12 +58,12 @@ public final class InfluxSeries {
 
 	@Override
 	public String toString() {
-		return "InfluxSeries{" + "name='" + name + '\'' + ", columns=" + columns + ", values="
-				+ values + '}';
+		return "Series{" + "name='" + name + '\'' + ", columns=" + columns + ", values=" + values
+				+ '}';
 	}
 
 	/**
-	 * Creates instances of {@link InfluxSeries}.
+	 * Creates instances of {@link Series}.
 	 */
 	public static final class Builder {
 
@@ -86,8 +86,8 @@ public final class InfluxSeries {
 			return this;
 		}
 
-		public InfluxSeries build() {
-			return new InfluxSeries(this);
+		public Series build() {
+			return new Series(this);
 		}
 	}
 }

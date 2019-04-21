@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.nickrammos.jflux.api.response.InfluxResponse;
 import com.nickrammos.jflux.api.response.InfluxResult;
-import com.nickrammos.jflux.api.response.InfluxSeries;
+import com.nickrammos.jflux.domain.Series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,7 +44,7 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, Influ
 	}
 
 	private InfluxResult resultFromDto(ResultDto resultDto) {
-		List<InfluxSeries> series = new LinkedList<>();
+		List<Series> series = new LinkedList<>();
 		if (resultDto.series != null) {
 			for (SeriesDto seriesDto : resultDto.series) {
 				series.add(seriesFromDto(seriesDto));
@@ -53,14 +53,14 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, Influ
 		return new InfluxResult.Builder().statementId(resultDto.statementId).series(series).build();
 	}
 
-	private InfluxSeries seriesFromDto(SeriesDto seriesDto) {
+	private Series seriesFromDto(SeriesDto seriesDto) {
 		List<List<Object>> values = new LinkedList<>();
 		if (seriesDto.values != null) {
 			for (Object[] val : seriesDto.values) {
 				values.add(Arrays.asList(val));
 			}
 		}
-		return new InfluxSeries.Builder().name(seriesDto.name)
+		return new Series.Builder().name(seriesDto.name)
 				.columns(Arrays.asList(seriesDto.columns))
 				.values(values)
 				.build();

@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import com.nickrammos.jflux.api.response.InfluxResponse;
 import com.nickrammos.jflux.api.response.InfluxResult;
-import com.nickrammos.jflux.api.response.InfluxSeries;
+import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 	 * @see #queryMultipleSeries(String)
 	 * @see #batchQuery(String)
 	 */
-	public InfluxSeries query(String query) throws IOException {
+	public Series query(String query) throws IOException {
 		if (MULTI_SERIES_PATTERN.matcher(query).matches()) {
 			throw new IllegalArgumentException("Query cannot span multiple measurements");
 		}
