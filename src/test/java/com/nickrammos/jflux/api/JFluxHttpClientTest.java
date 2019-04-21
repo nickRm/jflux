@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import com.nickrammos.jflux.api.response.InfluxResponse;
-import com.nickrammos.jflux.api.response.InfluxResult;
+import com.nickrammos.jflux.api.response.ApiResponse;
+import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.MediaType;
@@ -81,10 +81,10 @@ public class JFluxHttpClientTest {
 	public void query_shouldReturnSingleSeries() throws IOException {
 		// Given
 		String query = "SELECT * FROM measurement_1";
-		InfluxResponse response = createResponse();
+		ApiResponse response = createResponse();
 
 		@SuppressWarnings("unchecked")
-		Call<InfluxResponse> call = Mockito.mock(Call.class);
+		Call<ApiResponse> call = Mockito.mock(Call.class);
 		when(httpService.query(query)).thenReturn(call);
 		when(call.execute()).thenReturn(Response.success(response));
 
@@ -117,15 +117,15 @@ public class JFluxHttpClientTest {
 	public void multiSeriesQuery_shouldReturnSingleResult() throws IOException {
 		// Given
 		String query = "SELECT * FROM measurement_1";
-		InfluxResponse response = createResponse();
+		ApiResponse response = createResponse();
 
 		@SuppressWarnings("unchecked")
-		Call<InfluxResponse> call = Mockito.mock(Call.class);
+		Call<ApiResponse> call = Mockito.mock(Call.class);
 		when(httpService.query(query)).thenReturn(call);
 		when(call.execute()).thenReturn(Response.success(response));
 
 		// When
-		InfluxResult result = client.queryMultipleSeries(query);
+		QueryResult result = client.queryMultipleSeries(query);
 
 		// Then
 		assertThat(result).isEqualTo(response.getResults().get(0));
@@ -147,15 +147,15 @@ public class JFluxHttpClientTest {
 	public void multiResultQuery_shouldReturnResponse() throws IOException {
 		// Given
 		String query = "SELECT * FROM measurement_1";
-		InfluxResponse response = createResponse();
+		ApiResponse response = createResponse();
 
 		@SuppressWarnings("unchecked")
-		Call<InfluxResponse> call = Mockito.mock(Call.class);
+		Call<ApiResponse> call = Mockito.mock(Call.class);
 		when(httpService.query(query)).thenReturn(call);
 		when(call.execute()).thenReturn(Response.success(response));
 
 		// When
-		InfluxResponse actualResponse = client.batchQuery(query);
+		ApiResponse actualResponse = client.batchQuery(query);
 
 		// Then
 		assertThat(actualResponse).isEqualTo(response);
@@ -167,16 +167,16 @@ public class JFluxHttpClientTest {
 		client.batchQuery(query);
 	}
 
-	private static InfluxResponse createResponse() {
+	private static ApiResponse createResponse() {
 		List<String> columns = Collections.singletonList("column");
 		List<List<Object>> values = Collections.singletonList(Collections.singletonList("value"));
 		Series series =
 				new Series.Builder().name("series").columns(columns).values(values).build();
 
-		InfluxResult result = new InfluxResult.Builder().statementId(0)
+		QueryResult result = new QueryResult.Builder().statementId(0)
 				.series(Collections.singletonList(series))
 				.build();
 
-		return new InfluxResponse.Builder().results(Collections.singletonList(result)).build();
+		return new ApiResponse.Builder().results(Collections.singletonList(result)).build();
 	}
 }

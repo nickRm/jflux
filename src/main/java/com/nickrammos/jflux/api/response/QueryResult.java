@@ -10,13 +10,13 @@ import com.nickrammos.jflux.domain.Series;
  * <p>
  * A result will contain more than one series if more than one measurement were queried. For
  * instance, the following query will return a result with two series:
- * <pre>
- * {@code SELECT * FROM measurement_1, measurement_2}
- * </pre>
+ * <p><blockquote><pre>{@code
+ * SELECT * FROM measurement_1, measurement_2
+ * }</pre></blockquote>
  *
  * @see Builder
  */
-public final class InfluxResult {
+public final class QueryResult {
 
 	private final int statementId;
 	private final List<Series> series;
@@ -26,7 +26,7 @@ public final class InfluxResult {
 	 *
 	 * @param builder used to construct the instance
 	 */
-	private InfluxResult(Builder builder) {
+	private QueryResult(Builder builder) {
 		statementId = builder.statementId;
 		series = builder.series;
 	}
@@ -54,11 +54,11 @@ public final class InfluxResult {
 
 	@Override
 	public String toString() {
-		return "InfluxResult{" + "statementId=" + statementId + ", series=" + series + '}';
+		return "QueryResult{" + "statementId=" + statementId + ", series=" + series + '}';
 	}
 
 	/**
-	 * Creates instances of {@link InfluxResult}.
+	 * Creates instances of {@link QueryResult}.
 	 */
 	public static final class Builder {
 
@@ -75,8 +75,8 @@ public final class InfluxResult {
 			return this;
 		}
 
-		public InfluxResult build() {
-			return new InfluxResult(this);
+		public QueryResult build() {
+			return new QueryResult(this);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 package com.nickrammos.jflux.api;
 
-import com.nickrammos.jflux.api.response.InfluxResponse;
+import com.nickrammos.jflux.api.response.ApiResponse;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -23,5 +23,5 @@ interface InfluxHttpService {
 	 * @return the query result
 	 */
 	@GET("/query")
-	Call<InfluxResponse> query(@Query("q") String query);
+	Call<ApiResponse> query(@Query("q") String query);
 }

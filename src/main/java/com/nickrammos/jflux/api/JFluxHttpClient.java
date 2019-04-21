@@ -3,8 +3,8 @@ package com.nickrammos.jflux.api;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import com.nickrammos.jflux.api.response.InfluxResponse;
-import com.nickrammos.jflux.api.response.InfluxResult;
+import com.nickrammos.jflux.api.response.ApiResponse;
+import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.ResponseBody;
@@ -104,7 +104,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 	 * @see #query(String)
 	 * @see #batchQuery(String)
 	 */
-	public InfluxResult queryMultipleSeries(String query) throws IOException {
+	public QueryResult queryMultipleSeries(String query) throws IOException {
 		if (query.contains(";")) {
 			throw new IllegalArgumentException("Query cannot contain multiple statements");
 		}
@@ -133,14 +133,14 @@ public final class JFluxHttpClient implements AutoCloseable {
 	 * @see #query(String)
 	 * @see #queryMultipleSeries(String)
 	 */
-	public InfluxResponse batchQuery(String query) throws IOException {
+	public ApiResponse batchQuery(String query) throws IOException {
 		if (SELECT_INTO_PATTERN.matcher(query).matches()) {
 			throw new IllegalArgumentException("Cannot execute 'SELECT INTO' as query");
 		}
 
 		LOGGER.debug("Executing query: {}", query);
-		Call<InfluxResponse> call = service.query(query);
-		InfluxResponse response = call.execute().body();
+		Call<ApiResponse> call = service.query(query);
+		ApiResponse response = call.execute().body();
 		LOGGER.debug("Received response: {}", response);
 		return response;
 	}

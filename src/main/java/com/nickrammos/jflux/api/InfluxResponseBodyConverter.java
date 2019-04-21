@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.nickrammos.jflux.api.response.InfluxResponse;
-import com.nickrammos.jflux.api.response.InfluxResult;
+import com.nickrammos.jflux.api.response.ApiResponse;
+import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -16,9 +16,9 @@ import okhttp3.ResponseBody;
 import retrofit2.Converter;
 
 /**
- * Converts a {@link ResponseBody} from a call to the InfluxDB API, to an {@link InfluxResponse}.
+ * Converts a {@link ResponseBody} from a call to the InfluxDB API, to an {@link ApiResponse}.
  */
-final class InfluxResponseBodyConverter implements Converter<ResponseBody, InfluxResponse> {
+final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiResponse> {
 
 	private final ObjectMapper objectMapper;
 
@@ -27,30 +27,30 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, Influ
 	}
 
 	@Override
-	public InfluxResponse convert(ResponseBody responseBody) throws IOException {
+	public ApiResponse convert(ResponseBody responseBody) throws IOException {
 		String content = responseBody.string();
 		ResponseDto responseDto = objectMapper.readValue(content, ResponseDto.class);
 		return responseFromDto(responseDto);
 	}
 
-	private InfluxResponse responseFromDto(ResponseDto responseDto) {
-		List<InfluxResult> results = new LinkedList<>();
+	private ApiResponse responseFromDto(ResponseDto responseDto) {
+		List<QueryResult> results = new LinkedList<>();
 		if (responseDto.results != null) {
 			for (ResultDto resultDto : responseDto.results) {
 				results.add(resultFromDto(resultDto));
 			}
 		}
-		return new InfluxResponse.Builder().results(results).build();
+		return new ApiResponse.Builder().results(results).build();
 	}
 
-	private InfluxResult resultFromDto(ResultDto resultDto) {
+	private QueryResult resultFromDto(ResultDto resultDto) {
 		List<Series> series = new LinkedList<>();
 		if (resultDto.series != null) {
 			for (SeriesDto seriesDto : resultDto.series) {
 				series.add(seriesFromDto(seriesDto));
 			}
 		}
-		return new InfluxResult.Builder().statementId(resultDto.statementId).series(series).build();
+		return new QueryResult.Builder().statementId(resultDto.statementId).series(series).build();
 	}
 
 	private Series seriesFromDto(SeriesDto seriesDto) {
