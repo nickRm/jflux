@@ -1,6 +1,7 @@
 package com.nickrammos.jflux.api;
 
 import java.io.IOException;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import com.nickrammos.jflux.api.response.ApiResponse;
@@ -138,11 +139,27 @@ public final class JFluxHttpClient implements AutoCloseable {
 			throw new IllegalArgumentException("Cannot execute 'SELECT INTO' as query");
 		}
 
-		LOGGER.debug("Executing query: {}", query);
-		Call<ApiResponse> call = service.query(query);
-		ApiResponse response = call.execute().body();
+		ApiResponse response = callApi(service::query, query);
 		LOGGER.debug("Received response: {}", response);
 		return response;
+	}
+
+	/**
+	 * Executes DDL statements, such as {@code CREATE} or {@code ALTER}.
+	 *
+	 * @param statement the statement to execute
+	 *
+	 * @throws IOException if execution fails
+	 */
+	public void execute(String statement) throws IOException {
+		callApi(service::alter, statement);
+	}
+
+	private <T> T callApi(Function<String, Call<T>> apiMethod, String statement)
+			throws IOException {
+		LOGGER.debug("Executing statement: {}", statement);
+		Call<T> call = apiMethod.apply(statement);
+		return call.execute().body();
 	}
 
 	@Override
