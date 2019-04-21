@@ -1,24 +1,34 @@
 package com.nickrammos.jflux.api;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.ResponseBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import retrofit2.Converter;
 
 /**
  * Converts a {@link ResponseBody} from a call to the InfluxDB API, to an {@link ApiResponse}.
  */
 final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiResponse> {
+
+	private static final Logger LOGGER =
+			LoggerFactory.getLogger(InfluxResponseBodyConverter.class);
 
 	private final ObjectMapper objectMapper;
 
@@ -29,6 +39,10 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiRe
 	@Override
 	public ApiResponse convert(ResponseBody responseBody) throws IOException {
 		String content = responseBody.string();
+		if (content.endsWith("\n")) {
+			content = content.substring(0, content.length() - 1);
+		}
+		LOGGER.debug("Converting response body: {}", content);
 		ResponseDto responseDto = objectMapper.readValue(content, ResponseDto.class);
 		return responseFromDto(responseDto);
 	}
@@ -54,16 +68,58 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiRe
 	}
 
 	private Series seriesFromDto(SeriesDto seriesDto) {
-		List<List<Object>> values = new LinkedList<>();
-		if (seriesDto.values != null) {
-			for (Object[] val : seriesDto.values) {
-				values.add(Arrays.asList(val));
+		Set<String> tagSet = tagSetFromSeriesDto(seriesDto);
+		List<Point> points = pointsFromSeriesDto(seriesDto);
+
+		return new Series.Builder().name(seriesDto.name)
+				.tags(tagSet)
+				.points(points)
+				.build();
+	}
+
+	private Set<String> tagSetFromSeriesDto(SeriesDto seriesDto) {
+		Set<String> tagSet = new HashSet<>();
+		if (seriesDto.columns != null && seriesDto.values != null && seriesDto.values.length > 0) {
+			// First column is always the timestamp, skip it.
+			for (int i = 1; i < seriesDto.columns.length; i++) {
+				Object value = seriesDto.values[0][i];
+				if (!(value instanceof Number || value instanceof Boolean)) {
+					tagSet.add(seriesDto.columns[i]);
+				}
 			}
 		}
-		return new Series.Builder().name(seriesDto.name)
-				.columns(Arrays.asList(seriesDto.columns))
-				.values(values)
-				.build();
+		return tagSet;
+	}
+
+	private List<Point> pointsFromSeriesDto(SeriesDto seriesDto) {
+		List<Point> points = new LinkedList<>();
+		if (seriesDto.columns != null && seriesDto.values != null) {
+			for (Object[] row : seriesDto.values) {
+				Point point = pointFromRow(seriesDto.columns, row);
+				points.add(point);
+			}
+		}
+		return points;
+	}
+
+	private Point pointFromRow(String[] columns, Object[] row) {
+		Instant timestamp = Instant.parse(row[0].toString());
+
+		Map<String, String> tags = new HashMap<>();
+		Map<String, Object> fields = new HashMap<>();
+		// First column is always the timestamp, skip it.
+		for (int i = 1; i < columns.length; i++) {
+			String columnName = columns[i];
+			Object value = row[i];
+			if (value instanceof Number || value instanceof Boolean) {
+				fields.put(columnName, value);
+			}
+			else {
+				tags.put(columnName, String.valueOf(value));
+			}
+		}
+
+		return new Point.Builder().timestamp(timestamp).tags(tags).fields(fields).build();
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)

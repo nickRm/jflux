@@ -3,9 +3,11 @@ package com.nickrammos.jflux.api;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.MediaType;
@@ -168,10 +170,9 @@ public class JFluxHttpClientTest {
 	}
 
 	private static ApiResponse createResponse() {
-		List<String> columns = Collections.singletonList("column");
-		List<List<Object>> values = Collections.singletonList(Collections.singletonList("value"));
-		Series series =
-				new Series.Builder().name("series").columns(columns).values(values).build();
+		Set<String> tags = Collections.singleton("tag");
+		List<Point> points = Collections.singletonList(new Point.Builder().build());
+		Series series = new Series.Builder().name("series").tags(tags).points(points).build();
 
 		QueryResult result = new QueryResult.Builder().statementId(0)
 				.series(Collections.singletonList(series))
