@@ -1,6 +1,12 @@
 package com.nickrammos.jflux.api;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import com.nickrammos.jflux.api.response.InfluxResponse;
+import com.nickrammos.jflux.api.response.InfluxResult;
+import com.nickrammos.jflux.api.response.InfluxSeries;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -69,5 +75,108 @@ public class JFluxHttpClientTest {
 
 		// Then
 		assertThat(connected).isFalse();
+	}
+
+	@Test
+	public void query_shouldReturnSingleSeries() throws IOException {
+		// Given
+		String query = "SELECT * FROM measurement_1";
+		InfluxResponse response = createResponse();
+
+		@SuppressWarnings("unchecked")
+		Call<InfluxResponse> call = Mockito.mock(Call.class);
+		when(httpService.query(query)).thenReturn(call);
+		when(call.execute()).thenReturn(Response.success(response));
+
+		// When
+		InfluxSeries series = client.query(query);
+
+		// Then
+		assertThat(series).isEqualTo(response.getResults().get(0).getSeries().get(0));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void query_shouldThrowException_ifQueriesMultipleMeasurements() throws IOException {
+		String query = "SELECT * FROM measurement_1, measurement_2";
+		client.query(query);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void query_shouldThrowException_ifQueryIsMultiStatement() throws IOException {
+		String query = "SELECT * FROM measurement_1; SELECT * FROM measurement_2";
+		client.query(query);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void query_shouldThrowException_ifQueryIsSelectInto() throws IOException {
+		String query = "SELECT * INTO measurement_1 FROM measurement_2";
+		client.query(query);
+	}
+
+	@Test
+	public void multiSeriesQuery_shouldReturnSingleResult() throws IOException {
+		// Given
+		String query = "SELECT * FROM measurement_1";
+		InfluxResponse response = createResponse();
+
+		@SuppressWarnings("unchecked")
+		Call<InfluxResponse> call = Mockito.mock(Call.class);
+		when(httpService.query(query)).thenReturn(call);
+		when(call.execute()).thenReturn(Response.success(response));
+
+		// When
+		InfluxResult result = client.queryMultipleSeries(query);
+
+		// Then
+		assertThat(result).isEqualTo(response.getResults().get(0));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void multiSeriesQuery_shouldThrowException_ifQueryIsMultiStatement() throws IOException {
+		String query = "SELECT * FROM measurement_1; SELECT * FROM measurement_2";
+		client.queryMultipleSeries(query);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void multiSeriesQuery_shouldThrowException_ifQueryIsSelectInto() throws IOException {
+		String query = "SELECT * INTO measurement_1 FROM measurement_2";
+		client.queryMultipleSeries(query);
+	}
+
+	@Test
+	public void multiResultQuery_shouldReturnResponse() throws IOException {
+		// Given
+		String query = "SELECT * FROM measurement_1";
+		InfluxResponse response = createResponse();
+
+		@SuppressWarnings("unchecked")
+		Call<InfluxResponse> call = Mockito.mock(Call.class);
+		when(httpService.query(query)).thenReturn(call);
+		when(call.execute()).thenReturn(Response.success(response));
+
+		// When
+		InfluxResponse actualResponse = client.batchQuery(query);
+
+		// Then
+		assertThat(actualResponse).isEqualTo(response);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void multiResultQuery_shouldThrowException_ifQueryIsSelectInto() throws IOException {
+		String query = "SELECT * INTO measurement_1 FROM measurement_2";
+		client.batchQuery(query);
+	}
+
+	private static InfluxResponse createResponse() {
+		List<String> columns = Collections.singletonList("column");
+		List<List<Object>> values = Collections.singletonList(Collections.singletonList("value"));
+		InfluxSeries series =
+				new InfluxSeries.Builder().name("series").columns(columns).values(values).build();
+
+		InfluxResult result = new InfluxResult.Builder().statementId(0)
+				.series(Collections.singletonList(series))
+				.build();
+
+		return new InfluxResponse.Builder().results(Collections.singletonList(result)).build();
 	}
 }
