@@ -1,10 +1,9 @@
-package com.nickrammos.jflux.http;
+package com.nickrammos.jflux.api;
 
 import java.io.IOException;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
@@ -21,7 +20,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 	 *
 	 * @param service the API service
 	 */
-	JFluxHttpClient(InfluxHttpService service) {
+	private JFluxHttpClient(InfluxHttpService service) {
 		this.service = service;
 	}
 
@@ -33,7 +32,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 	public boolean isConnected() {
 		Call<ResponseBody> call = service.ping();
 		try {
-			Response<ResponseBody> response = call.execute();
+			retrofit2.Response response = call.execute();
 			return response.isSuccessful();
 		} catch (IOException e) {
 			return false;
@@ -67,7 +66,10 @@ public final class JFluxHttpClient implements AutoCloseable {
 		 * @return the new client instance
 		 */
 		public JFluxHttpClient build() {
-			Retrofit retrofit = new Retrofit.Builder().baseUrl(host).build();
+			Retrofit retrofit = new Retrofit.Builder()
+					.baseUrl(host)
+					.addConverterFactory(new InfluxConverterFactory())
+					.build();
 			InfluxHttpService service = retrofit.create(InfluxHttpService.class);
 			return new JFluxHttpClient(service);
 		}
