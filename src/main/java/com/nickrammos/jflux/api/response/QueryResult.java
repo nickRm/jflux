@@ -1,6 +1,7 @@
 package com.nickrammos.jflux.api.response;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.nickrammos.jflux.domain.Series;
@@ -76,7 +77,7 @@ public final class QueryResult {
 
 		private int statementId;
 		private String error;
-		private List<Series> series;
+		private List<Series> series = Collections.emptyList();
 
 		public Builder statementId(int statementId) {
 			this.statementId = statementId;

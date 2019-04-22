@@ -1,6 +1,7 @@
 package com.nickrammos.jflux.api;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -76,7 +77,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 	 *
 	 * @param query the query to execute
 	 *
-	 * @return the query result
+	 * @return the query result, or {@code null} if no results
 	 *
 	 * @throws IOException if query execution fails
 	 * @see #queryMultipleSeries(String)
@@ -87,7 +88,8 @@ public final class JFluxHttpClient implements AutoCloseable {
 			throw new IllegalArgumentException("Query cannot span multiple measurements");
 		}
 
-		return queryMultipleSeries(query).getSeries().get(0);
+		List<Series> series = queryMultipleSeries(query).getSeries();
+		return series.isEmpty() ? null : series.get(0);
 	}
 
 	/**

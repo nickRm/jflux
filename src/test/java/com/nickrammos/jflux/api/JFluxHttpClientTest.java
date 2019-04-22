@@ -98,6 +98,26 @@ public class JFluxHttpClientTest {
 		assertThat(series).isEqualTo(response.getResults().get(0).getSeries().get(0));
 	}
 
+	@Test
+	public void query_shouldReturnNull_ifNoResults() throws IOException {
+		// Given
+		String query = "SELECT * FROM non_existent_measurement";
+		QueryResult queryResult = new QueryResult.Builder().build();
+		ApiResponse response =
+				new ApiResponse.Builder().results(Collections.singletonList(queryResult)).build();
+
+		@SuppressWarnings("unchecked")
+		Call<ApiResponse> call = Mockito.mock(Call.class);
+		when(httpService.query(query)).thenReturn(call);
+		when(call.execute()).thenReturn(Response.success(response));
+
+		// When
+		Series series = client.query(query);
+
+		// Then
+		assertThat(series).isNull();
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void query_shouldThrowException_ifQueriesMultipleMeasurements() throws IOException {
 		String query = "SELECT * FROM measurement_1, measurement_2";
