@@ -1,7 +1,9 @@
 package com.nickrammos.jflux.api.response;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A response from the InfluxDB API, acts as a wrapper for the (possibly multiple) results returned.
@@ -29,6 +31,30 @@ public final class ApiResponse {
 		return new ArrayList<>(results);
 	}
 
+	/**
+	 * Gets a value indicating whether any of the results in this response returned an error.
+	 *
+	 * @return {@code true} if the response contains any errors, {@code false} otherwise
+	 */
+	public boolean hasError() {
+		return getErrorMessage() != null;
+	}
+
+	/**
+	 * Gets the error message for this response, if any.
+	 * <p>
+	 * If this response contains multiple errors, this method returns the first one.
+	 *
+	 * @return the response error message, or {@code null} if no error
+	 */
+	public String getErrorMessage() {
+		return results.stream()
+				.map(QueryResult::getError)
+				.filter(Objects::nonNull)
+				.findFirst()
+				.orElse(null);
+	}
+
 	@Override
 	public String toString() {
 		return "ApiResponse{" + "results=" + results + '}';
@@ -39,7 +65,7 @@ public final class ApiResponse {
 	 */
 	public static final class Builder {
 
-		private List<QueryResult> results;
+		private List<QueryResult> results = Collections.emptyList();
 
 		public Builder results(List<QueryResult> results) {
 			this.results = results;

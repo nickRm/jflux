@@ -13,9 +13,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class InfluxResponseBodyConverterTest {
+public class ResponseBodyConverterTest {
 
-	private InfluxResponseBodyConverter converter = new InfluxResponseBodyConverter();
+	private ResponseBodyConverter converter = new ResponseBodyConverter();
 
 	@Test
 	public void test() throws IOException {

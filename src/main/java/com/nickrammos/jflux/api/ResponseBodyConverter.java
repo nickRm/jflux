@@ -25,14 +25,14 @@ import retrofit2.Converter;
 /**
  * Converts a {@link ResponseBody} from a call to the InfluxDB API, to an {@link ApiResponse}.
  */
-final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiResponse> {
+final class ResponseBodyConverter implements Converter<ResponseBody, ApiResponse> {
 
 	private static final Logger LOGGER =
-			LoggerFactory.getLogger(InfluxResponseBodyConverter.class);
+			LoggerFactory.getLogger(ResponseBodyConverter.class);
 
 	private final ObjectMapper objectMapper;
 
-	InfluxResponseBodyConverter() {
+	ResponseBodyConverter() {
 		objectMapper = new ObjectMapper();
 	}
 
@@ -64,7 +64,10 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiRe
 				series.add(seriesFromDto(seriesDto));
 			}
 		}
-		return new QueryResult.Builder().statementId(resultDto.statementId).series(series).build();
+		return new QueryResult.Builder().statementId(resultDto.statementId)
+				.error(resultDto.error)
+				.series(series)
+				.build();
 	}
 
 	private Series seriesFromDto(SeriesDto seriesDto) {
@@ -134,6 +137,9 @@ final class InfluxResponseBodyConverter implements Converter<ResponseBody, ApiRe
 
 		@JsonProperty("statement_id")
 		private int statementId;
+
+		@JsonProperty
+		private String error;
 
 		@JsonProperty
 		private SeriesDto[] series;

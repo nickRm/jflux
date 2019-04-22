@@ -9,6 +9,7 @@ import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
+import com.nickrammos.jflux.exception.InvalidQueryException;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -113,6 +114,46 @@ public class JFluxHttpClientTest {
 	public void query_shouldThrowException_ifQueryIsSelectInto() throws IOException {
 		String query = "SELECT * INTO measurement_1 FROM measurement_2";
 		client.query(query);
+	}
+
+	@Test(expected = InvalidQueryException.class)
+	public void query_shouldThrowException_ifQuerySyntaxIsInvalid() throws IOException {
+		// Given
+		String query = "SELECT * FROM FROM measurement_1";
+		ResponseBody errorBody = ResponseBody.create(MediaType.get("application/json"),
+				"{\"error\": \"some error\"}");
+		Response<ApiResponse> errorResponse = Response.error(400, errorBody);
+
+		@SuppressWarnings("unchecked")
+		Call<ApiResponse> call = Mockito.mock(Call.class);
+		when(httpService.query(query)).thenReturn(call);
+		when(call.execute()).thenReturn(errorResponse);
+
+		// When
+		client.query(query);
+
+		// Then
+		// Expect exception
+	}
+
+	@Test(expected = InvalidQueryException.class)
+	public void query_shouldThrowException_ifQueryIsInvalid() throws IOException {
+		// Given
+		String query = "SELECT * FROM non_existent_measurement";
+		QueryResult queryResult = new QueryResult.Builder().error("some error").build();
+		ApiResponse apiResponse =
+				new ApiResponse.Builder().results(Collections.singletonList(queryResult)).build();
+
+		@SuppressWarnings("unchecked")
+		Call<ApiResponse> call = Mockito.mock(Call.class);
+		when(httpService.query(query)).thenReturn(call);
+		when(call.execute()).thenReturn(Response.success(apiResponse));
+
+		// When
+		client.query(query);
+
+		// Then
+		// Expect exception
 	}
 
 	@Test

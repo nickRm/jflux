@@ -17,6 +17,6 @@ final class InfluxConverterFactory extends Converter.Factory {
 	@Override
 	public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
 			Retrofit retrofit) {
-		return new InfluxResponseBodyConverter();
+		return new ResponseBodyConverter();
 	}
 }

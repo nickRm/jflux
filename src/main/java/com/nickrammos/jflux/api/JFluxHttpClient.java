@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import com.nickrammos.jflux.api.response.ApiError;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Series;
+import com.nickrammos.jflux.exception.InvalidQueryException;
 
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
@@ -28,6 +31,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 			+ ".*");
 
 	private final InfluxHttpService service;
+	private final ErrorResponseConverter errorResponseConverter;
 
 	/**
 	 * Initializes a new instance setting the service to be used for calls to the API.
@@ -36,6 +40,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 	 */
 	private JFluxHttpClient(InfluxHttpService service) {
 		this.service = service;
+		errorResponseConverter = new ErrorResponseConverter();
 	}
 
 	/**
@@ -140,7 +145,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 		}
 
 		ApiResponse response = callApi(service::query, query);
-		LOGGER.debug("Received response: {}", response);
+		LOGGER.debug("Received {}", response);
 		return response;
 	}
 
@@ -155,11 +160,19 @@ public final class JFluxHttpClient implements AutoCloseable {
 		callApi(service::alter, statement);
 	}
 
-	private <T> T callApi(Function<String, Call<T>> apiMethod, String statement)
+	private ApiResponse callApi(Function<String, Call<ApiResponse>> apiMethod, String statement)
 			throws IOException {
-		LOGGER.debug("Executing statement: {}", statement);
-		Call<T> call = apiMethod.apply(statement);
-		return call.execute().body();
+		LOGGER.debug("Executing statement '{}'", statement);
+		Call<ApiResponse> call = apiMethod.apply(statement);
+		Response<ApiResponse> response = call.execute();
+		if (response.isSuccessful() && (response.body() == null || !response.body().hasError())) {
+			return response.body();
+		}
+		else {
+			ApiError apiError = errorResponseConverter.convert(response);
+			LOGGER.error("Statement failed with {}", apiError);
+			throw new InvalidQueryException(apiError.getMessage());
+		}
 	}
 
 	@Override

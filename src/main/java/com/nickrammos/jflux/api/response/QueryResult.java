@@ -19,6 +19,7 @@ import com.nickrammos.jflux.domain.Series;
 public final class QueryResult {
 
 	private final int statementId;
+	private final String error;
 	private final List<Series> series;
 
 	/**
@@ -28,6 +29,7 @@ public final class QueryResult {
 	 */
 	private QueryResult(Builder builder) {
 		statementId = builder.statementId;
+		error = builder.error;
 		series = builder.series;
 	}
 
@@ -44,6 +46,15 @@ public final class QueryResult {
 	}
 
 	/**
+	 * Gets the error message for this result if available.
+	 *
+	 * @return the error message, or {@code null} if none
+	 */
+	public String getError() {
+		return error;
+	}
+
+	/**
 	 * Gets the series contained in this result.
 	 *
 	 * @return this result's series, or an empty list if none are available
@@ -54,7 +65,8 @@ public final class QueryResult {
 
 	@Override
 	public String toString() {
-		return "QueryResult{" + "statementId=" + statementId + ", series=" + series + '}';
+		return "QueryResult{" + "statementId=" + statementId + ", error='" + error + '\'' +
+				", series=" + series + '}';
 	}
 
 	/**
@@ -63,10 +75,16 @@ public final class QueryResult {
 	public static final class Builder {
 
 		private int statementId;
+		private String error;
 		private List<Series> series;
 
 		public Builder statementId(int statementId) {
 			this.statementId = statementId;
+			return this;
+		}
+
+		public Builder error(String error) {
+			this.error = error;
 			return this;
 		}
 

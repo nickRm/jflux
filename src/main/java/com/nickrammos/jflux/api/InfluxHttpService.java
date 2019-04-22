@@ -34,5 +34,5 @@ interface InfluxHttpService {
 	 * @return the execution result
 	 */
 	@POST("/query")
-	Call<ResponseBody> alter(@Query("q") String statement);
+	Call<ApiResponse> alter(@Query("q") String statement);
 }
