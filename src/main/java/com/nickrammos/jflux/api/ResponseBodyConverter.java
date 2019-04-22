@@ -83,8 +83,8 @@ final class ResponseBodyConverter implements Converter<ResponseBody, ApiResponse
 	private Set<String> tagSetFromSeriesDto(SeriesDto seriesDto) {
 		Set<String> tagSet = new HashSet<>();
 		if (seriesDto.columns != null && seriesDto.values != null && seriesDto.values.length > 0) {
-			// First column is always the timestamp, skip it.
-			for (int i = 1; i < seriesDto.columns.length; i++) {
+			int startIndex = seriesDto.columns[0].equals("time") ? 1 : 0;
+			for (int i = startIndex; i < seriesDto.columns.length; i++) {
 				Object value = seriesDto.values[0][i];
 				if (!(value instanceof Number || value instanceof Boolean)) {
 					tagSet.add(seriesDto.columns[i]);
@@ -106,12 +106,16 @@ final class ResponseBodyConverter implements Converter<ResponseBody, ApiResponse
 	}
 
 	private Point pointFromRow(String[] columns, Object[] row) {
-		Instant timestamp = Instant.parse(row[0].toString());
+		Instant timestamp = null;
+		int startIndex = 0;
+		if (columns[0].equals("time")) {
+			timestamp = Instant.parse(row[0].toString());
+			startIndex = 1;
+		}
 
 		Map<String, String> tags = new HashMap<>();
 		Map<String, Object> fields = new HashMap<>();
-		// First column is always the timestamp, skip it.
-		for (int i = 1; i < columns.length; i++) {
+		for (int i = startIndex; i < columns.length; i++) {
 			String columnName = columns[i];
 			Object value = row[i];
 			if (value instanceof Number || value instanceof Boolean) {
