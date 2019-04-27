@@ -12,6 +12,11 @@
     <description>Java client for InfluxDB</description>
     <url>https://github.com/nickRm/jflux</url>
 
+    <issueManagement>
+        <url>https://github.com/nickRm/jflux/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
