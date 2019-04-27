@@ -10,6 +10,7 @@
 
     <name>jFlux</name>
     <description>Java client for InfluxDB</description>
+    <url>https://github.com/nickRm/jflux</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
