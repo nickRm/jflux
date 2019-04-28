@@ -28,79 +28,79 @@ import java.util.Set;
  */
 public final class Series {
 
-	private final String name;
-	private final Set<String> tags;
-	private final List<Point> points;
+    private final String name;
+    private final Set<String> tags;
+    private final List<Point> points;
 
-	/**
-	 * Instances of this class can only be constructed using {@link Builder}.
-	 *
-	 * @param builder used to construct the instance
-	 */
-	private Series(Builder builder) {
-		name = builder.name;
-		tags = builder.tags;
-		points = builder.points;
-	}
+    /**
+     * Instances of this class can only be constructed using {@link Builder}.
+     *
+     * @param builder used to construct the instance
+     */
+    private Series(Builder builder) {
+        name = builder.name;
+        tags = builder.tags;
+        points = builder.points;
+    }
 
-	/**
-	 * Gets the name of this series.
-	 *
-	 * @return the series name, or {@code null} if not available
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * Gets the name of this series.
+     *
+     * @return the series name, or {@code null} if not available
+     */
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 * Gets the tags for this series.
-	 *
-	 * @return the series tags, or an empty set if none
-	 */
-	public Set<String> getTags() {
-		return new HashSet<>(tags);
-	}
+    /**
+     * Gets the tags for this series.
+     *
+     * @return the series tags, or an empty set if none
+     */
+    public Set<String> getTags() {
+        return new HashSet<>(tags);
+    }
 
-	/**
-	 * Gets the points in this series.
-	 *
-	 * @return the serie's points, or an empty list if none
-	 */
-	public List<Point> getPoints() {
-		return new ArrayList<>(points);
-	}
+    /**
+     * Gets the points in this series.
+     *
+     * @return the serie's points, or an empty list if none
+     */
+    public List<Point> getPoints() {
+        return new ArrayList<>(points);
+    }
 
-	@Override
-	public String toString() {
-		return "Series{" + "name='" + name + '\'' + ", tags=" + tags + ", points=" + points + '}';
-	}
+    @Override
+    public String toString() {
+        return "Series{" + "name='" + name + '\'' + ", tags=" + tags + ", points=" + points + '}';
+    }
 
-	/**
-	 * Creates instances of {@link Series}.
-	 */
-	public static final class Builder {
+    /**
+     * Creates instances of {@link Series}.
+     */
+    public static final class Builder {
 
-		private String name;
-		private Set<String> tags;
-		private List<Point> points;
+        private String name;
+        private Set<String> tags;
+        private List<Point> points;
 
-		public Builder name(String name) {
-			this.name = name;
-			return this;
-		}
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
 
-		public Builder tags(Set<String> tags) {
-			this.tags = tags;
-			return this;
-		}
+        public Builder tags(Set<String> tags) {
+            this.tags = tags;
+            return this;
+        }
 
-		public Builder points(List<Point> points) {
-			this.points = points;
-			return this;
-		}
+        public Builder points(List<Point> points) {
+            this.points = points;
+            return this;
+        }
 
-		public Series build() {
-			return new Series(this);
-		}
-	}
+        public Series build() {
+            return new Series(this);
+        }
+    }
 }

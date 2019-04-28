@@ -30,9 +30,9 @@ import retrofit2.Retrofit;
  */
 final class InfluxConverterFactory extends Converter.Factory {
 
-	@Override
-	public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
-			Retrofit retrofit) {
-		return new ResponseBodyConverter();
-	}
+    @Override
+    public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
+            Retrofit retrofit) {
+        return new ResponseBodyConverter();
+    }
 }

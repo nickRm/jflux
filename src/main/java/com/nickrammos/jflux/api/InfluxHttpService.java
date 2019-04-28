@@ -29,26 +29,26 @@ import retrofit2.http.Query;
  */
 interface InfluxHttpService {
 
-	@GET("/ping")
-	Call<ResponseBody> ping();
+    @GET("/ping")
+    Call<ResponseBody> ping();
 
-	/**
-	 * Queries data from InfluxDB.
-	 *
-	 * @param query the query to execute
-	 *
-	 * @return the query result
-	 */
-	@GET("/query")
-	Call<ApiResponse> query(@Query("q") String query);
+    /**
+     * Queries data from InfluxDB.
+     *
+     * @param query the query to execute
+     *
+     * @return the query result
+     */
+    @GET("/query")
+    Call<ApiResponse> query(@Query("q") String query);
 
-	/**
-	 * Executes DDL statements against InfluxDB.
-	 *
-	 * @param statement the statement to execute
-	 *
-	 * @return the execution result
-	 */
-	@POST("/query")
-	Call<ApiResponse> alter(@Query("q") String statement);
+    /**
+     * Executes DDL statements against InfluxDB.
+     *
+     * @param statement the statement to execute
+     *
+     * @return the execution result
+     */
+    @POST("/query")
+    Call<ApiResponse> alter(@Query("q") String statement);
 }
