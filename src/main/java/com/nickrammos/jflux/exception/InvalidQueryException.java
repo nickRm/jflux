@@ -22,12 +22,12 @@ package com.nickrammos.jflux.exception;
  */
 public final class InvalidQueryException extends RuntimeException {
 
-	/**
-	 * Initializes a new instance setting the message.
-	 *
-	 * @param message the message for this exception
-	 */
-	public InvalidQueryException(String message) {
-		super(message);
-	}
+    /**
+     * Initializes a new instance setting the message.
+     *
+     * @param message the message for this exception
+     */
+    public InvalidQueryException(String message) {
+        super(message);
+    }
 }

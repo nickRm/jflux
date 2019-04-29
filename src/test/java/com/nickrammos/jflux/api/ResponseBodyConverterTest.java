@@ -15,19 +15,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ResponseBodyConverterTest {
 
-	private ResponseBodyConverter converter = new ResponseBodyConverter();
+    private ResponseBodyConverter converter = new ResponseBodyConverter();
 
-	@Test
-	public void test() throws IOException {
-		// Given
-		String measurementName = "measurement_1";
-		Instant timestamp = Instant.now();
-		String tagName = "tag_1";
-		String fieldName = "field_1";
-		String tagValue = "tag";
-		Object fieldValue = 1;
+    @Test
+    public void test() throws IOException {
+        // Given
+        String measurementName = "measurement_1";
+        Instant timestamp = Instant.now();
+        String tagName = "tag_1";
+        String fieldName = "field_1";
+        String tagValue = "tag";
+        Object fieldValue = 1;
 
-		// @formatter:off
+        // @formatter:off
 		String content =
 				"{"
 					+ "\"results\": ["
@@ -47,20 +47,20 @@ public class ResponseBodyConverterTest {
 				+ "}";
 		// @formatter:on
 
-		// When
-		ApiResponse response =
-				converter.convert(ResponseBody.create(MediaType.get("application/json"), content));
+        // When
+        ApiResponse response =
+                converter.convert(ResponseBody.create(MediaType.get("application/json"), content));
 
-		// Then
-		Series series = response.getResults().get(0).getSeries().get(0);
-		assertThat(series.getName()).isEqualTo(measurementName);
-		assertThat(series.getTags()).containsExactly(tagName);
+        // Then
+        Series series = response.getResults().get(0).getSeries().get(0);
+        assertThat(series.getName()).isEqualTo(measurementName);
+        assertThat(series.getTags()).containsExactly(tagName);
 
-		Point point = series.getPoints().get(0);
-		assertThat(point.getTimestamp()).isEqualTo(timestamp);
-		assertThat(point.getTags()).containsOnlyKeys(tagName);
-		assertThat(point.getTags().get(tagName)).isEqualTo(tagValue);
-		assertThat(point.getFields()).containsOnlyKeys(fieldName);
-		assertThat(point.getFields().get(fieldName)).isEqualTo(fieldValue);
-	}
+        Point point = series.getPoints().get(0);
+        assertThat(point.getTimestamp()).isEqualTo(timestamp);
+        assertThat(point.getTags()).containsOnlyKeys(tagName);
+        assertThat(point.getTags().get(tagName)).isEqualTo(tagValue);
+        assertThat(point.getFields()).containsOnlyKeys(fieldName);
+        assertThat(point.getFields().get(fieldName)).isEqualTo(fieldValue);
+    }
 }

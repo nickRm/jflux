@@ -33,46 +33,46 @@ import retrofit2.Response;
  */
 final class ErrorResponseConverter implements Converter<Response<ApiResponse>, ApiError> {
 
-	private static final Logger LOGGER =
-			LoggerFactory.getLogger(ErrorResponseConverter.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ErrorResponseConverter.class);
 
-	private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-	ErrorResponseConverter() {
-		objectMapper = new ObjectMapper();
-	}
+    ErrorResponseConverter() {
+        objectMapper = new ObjectMapper();
+    }
 
-	@Override
-	public ApiError convert(Response<ApiResponse> response) throws IOException {
-		String errorMessage;
-		if (response.errorBody() != null) {
-			errorMessage = getErrorMessageFromErrorBody(response.errorBody());
-		}
-		else if (response.body() != null) {
-			errorMessage = response.body().getErrorMessage();
-		}
-		else {
-			errorMessage = null;
-		}
+    @Override
+    public ApiError convert(Response<ApiResponse> response) throws IOException {
+        String errorMessage;
+        if (response.errorBody() != null) {
+            errorMessage = getErrorMessageFromErrorBody(response.errorBody());
+        }
+        else if (response.body() != null) {
+            errorMessage = response.body().getErrorMessage();
+        }
+        else {
+            errorMessage = null;
+        }
 
-		return new ApiError.Builder(response.code(), errorMessage).build();
-	}
+        return new ApiError.Builder(response.code(), errorMessage).build();
+    }
 
-	private String getErrorMessageFromErrorBody(ResponseBody errorBody) throws IOException {
-		String content = errorBody.string();
-		if (content != null && content.endsWith("\n")) {
-			content = content.substring(0, content.length() - 1);
-		}
+    private String getErrorMessageFromErrorBody(ResponseBody errorBody) throws IOException {
+        String content = errorBody.string();
+        if (content != null && content.endsWith("\n")) {
+            content = content.substring(0, content.length() - 1);
+        }
 
-		LOGGER.debug("Converting {}", content);
+        LOGGER.debug("Converting {}", content);
 
-		String errorMessage = objectMapper.readTree(content).get("error").toString();
-		if (errorMessage.startsWith("\"")) {
-			errorMessage = errorMessage.substring(1);
-		}
-		if (errorMessage.endsWith("\"")) {
-			errorMessage = errorMessage.substring(0, errorMessage.length() - 1);
-		}
-		return errorMessage;
-	}
+        String errorMessage = objectMapper.readTree(content).get("error").toString();
+        if (errorMessage.startsWith("\"")) {
+            errorMessage = errorMessage.substring(1);
+        }
+        if (errorMessage.endsWith("\"")) {
+            errorMessage = errorMessage.substring(0, errorMessage.length() - 1);
+        }
+        return errorMessage;
+    }
 }
