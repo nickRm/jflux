@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.nickrammos.jflux.api;
+package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
 
 import com.nickrammos.jflux.api.response.ApiError;
-import com.nickrammos.jflux.api.response.ApiResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.ResponseBody;
@@ -31,7 +30,7 @@ import retrofit2.Response;
 /**
  * Converts a response from a failed InfluxDB API call to an {@link ApiError}.
  */
-final class ErrorResponseConverter implements Converter<Response<ApiResponse>, ApiError> {
+final class ErrorResponseConverter implements Converter<Response<?>, ApiError> {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ErrorResponseConverter.class);
@@ -43,13 +42,10 @@ final class ErrorResponseConverter implements Converter<Response<ApiResponse>, A
     }
 
     @Override
-    public ApiError convert(Response<ApiResponse> response) throws IOException {
+    public ApiError convert(Response<?> response) throws IOException {
         String errorMessage;
         if (response.errorBody() != null) {
             errorMessage = getErrorMessageFromErrorBody(response.errorBody());
-        }
-        else if (response.body() != null) {
-            errorMessage = response.body().getErrorMessage();
         }
         else {
             errorMessage = null;

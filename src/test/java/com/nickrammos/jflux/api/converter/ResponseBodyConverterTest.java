@@ -1,4 +1,4 @@
-package com.nickrammos.jflux.api;
+package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
 import java.time.Instant;

@@ -1,11 +1,9 @@
-package com.nickrammos.jflux.api;
+package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import com.nickrammos.jflux.api.response.ApiError;
 import com.nickrammos.jflux.api.response.ApiResponse;
-import com.nickrammos.jflux.api.response.QueryResult;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -32,22 +30,6 @@ public class ErrorResponseConverterTest {
 
         // Then
         assertThat(apiError.getStatusCode()).isEqualTo(statusCode);
-        assertThat(apiError.getMessage()).isEqualTo(errorMessage);
-    }
-
-    @Test
-    public void convert_shouldGetErrorFromResponseBody_whenCallWasSuccessful() throws IOException {
-        // Given
-        String errorMessage = "an error occurred";
-        QueryResult result = new QueryResult.Builder().error(errorMessage).build();
-        ApiResponse apiResponse =
-                new ApiResponse.Builder().results(Collections.singletonList(result)).build();
-        Response<ApiResponse> response = Response.success(apiResponse);
-
-        // When
-        ApiError apiError = converter.convert(response);
-
-        // Then
         assertThat(apiError.getMessage()).isEqualTo(errorMessage);
     }
 
