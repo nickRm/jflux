@@ -12,7 +12,7 @@ import retrofit2.Response;
 /**
  * Converts a {@link Response} to an {@link ApiResponse}.
  */
-public class ApiResponseConverter {
+public final class ApiResponseConverter {
 
     private final ResponseBodyConverter responseBodyConverter;
     private final ErrorResponseConverter errorResponseConverter;
