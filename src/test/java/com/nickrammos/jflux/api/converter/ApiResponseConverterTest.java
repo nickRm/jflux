@@ -18,6 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiResponseConverterTest {
 
     @Mock
+    private ResponseHeaderConverter responseHeaderConverter;
+
+    @Mock
     private ResponseBodyConverter responseBodyConverter;
 
     @Mock
@@ -28,7 +31,8 @@ public class ApiResponseConverterTest {
     @Before
     public void setup() {
         apiResponseConverter =
-                new ApiResponseConverter(responseBodyConverter, errorResponseConverter);
+                new ApiResponseConverter(responseHeaderConverter, responseBodyConverter,
+                        errorResponseConverter);
     }
 
     @Test

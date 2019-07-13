@@ -32,6 +32,7 @@ import java.util.Objects;
  */
 public final class ApiResponse {
 
+    private final ResponseMetadata metadata;
     private final int statusCode;
     private final String errorMessage;
     private final List<QueryResult> results;
@@ -42,9 +43,19 @@ public final class ApiResponse {
      * @param builder used to construct this instance
      */
     private ApiResponse(Builder builder) {
+        this.metadata = builder.metadata;
         this.statusCode = builder.statusCode;
         this.errorMessage = builder.errorMessage;
         this.results = builder.results;
+    }
+
+    /**
+     * Gets the metadata for this response.
+     *
+     * @return the response metadata
+     */
+    public ResponseMetadata getMetadata() {
+        return metadata;
     }
 
     /**
@@ -95,9 +106,22 @@ public final class ApiResponse {
      */
     public static final class Builder {
 
+        private ResponseMetadata metadata;
         private int statusCode;
         private String errorMessage;
         private List<QueryResult> results = Collections.emptyList();
+
+        /**
+         * Sets the metadata for this response.
+         *
+         * @param metadata the response metadata
+         *
+         * @return this builder
+         */
+        public Builder metadata(ResponseMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
 
         /**
          * Sets the status code for this response.

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.api.response.ResponseMetadata;
 
 import okhttp3.ResponseBody;
 import retrofit2.Response;
@@ -15,6 +16,7 @@ import retrofit2.Response;
  */
 public final class ApiResponseConverter {
 
+    private final ResponseHeaderConverter responseHeaderConverter;
     private final ResponseBodyConverter responseBodyConverter;
     private final ErrorResponseConverter errorResponseConverter;
 
@@ -22,7 +24,8 @@ public final class ApiResponseConverter {
      * Initializes a new instance.
      */
     public ApiResponseConverter() {
-        this(new ResponseBodyConverter(), new ErrorResponseConverter());
+        this(new ResponseHeaderConverter(), new ResponseBodyConverter(),
+                new ErrorResponseConverter());
     }
 
     /**
@@ -30,11 +33,14 @@ public final class ApiResponseConverter {
      * <p>
      * This is currently mainly used for injecting mocks in testing.
      *
-     * @param responseBodyConverter  used to extract the results from the response
-     * @param errorResponseConverter used to extract any errors from the response
+     * @param responseHeaderConverter used to extract metadata from the response
+     * @param responseBodyConverter   used to extract the results from the response
+     * @param errorResponseConverter  used to extract any errors from the response
      */
-    ApiResponseConverter(ResponseBodyConverter responseBodyConverter,
+    ApiResponseConverter(ResponseHeaderConverter responseHeaderConverter,
+            ResponseBodyConverter responseBodyConverter,
             ErrorResponseConverter errorResponseConverter) {
+        this.responseHeaderConverter = responseHeaderConverter;
         this.responseBodyConverter = responseBodyConverter;
         this.errorResponseConverter = errorResponseConverter;
     }
@@ -49,13 +55,16 @@ public final class ApiResponseConverter {
      * @throws IOException if conversion fails
      */
     public ApiResponse convert(Response<ResponseBody> responseWrapper) throws IOException {
+        ResponseMetadata metadata = responseHeaderConverter.convert(responseWrapper.headers());
+
         int statusCode = responseWrapper.code();
         String errorMessage = errorResponseConverter.convert(responseWrapper);
         List<QueryResult> results = responseWrapper.body() == null ?
                 Collections.emptyList() :
                 responseBodyConverter.convert(responseWrapper.body());
 
-        return new ApiResponse.Builder().statusCode(statusCode)
+        return new ApiResponse.Builder().metadata(metadata)
+                .statusCode(statusCode)
                 .errorMessage(errorMessage)
                 .results(results)
                 .build();
