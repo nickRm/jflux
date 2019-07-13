@@ -8,6 +8,7 @@ import java.util.Set;
 import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
 
@@ -38,49 +39,23 @@ public class JFluxHttpClientTest {
     private JFluxHttpClient client;
 
     @Test
-    public void isConnected_shouldReturnTrue_onSuccessfulResponse() throws IOException {
+    public void ping_shouldReturnMetadata_onSuccessfulResponse() throws IOException {
         // Given
         @SuppressWarnings("unchecked")
         Call<ResponseBody> call = Mockito.mock(Call.class);
+        Response<ResponseBody> responseWrapper = Response.success(null);
         when(httpService.ping()).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(null));
+        when(call.execute()).thenReturn(responseWrapper);
+
+        ResponseMetadata metadata = new ResponseMetadata.Builder().build();
+        ApiResponse apiResponse = new ApiResponse.Builder().metadata(metadata).build();
+        when(responseConverter.convert(responseWrapper)).thenReturn(apiResponse);
 
         // When
-        boolean connected = client.isConnected();
+        ResponseMetadata result = client.ping();
 
         // Then
-        assertThat(connected).isTrue();
-    }
-
-    @Test
-    public void isConnected_shouldReturnFalse_onUnsuccessfulResponse() throws IOException {
-        // Given
-        @SuppressWarnings("unchecked")
-        Call<ResponseBody> call = Mockito.mock(Call.class);
-        when(httpService.ping()).thenReturn(call);
-        when(call.execute()).thenReturn(
-                Response.error(500, ResponseBody.create(MediaType.get("application/json"), "")));
-
-        // When
-        boolean connected = client.isConnected();
-
-        // Then
-        assertThat(connected).isFalse();
-    }
-
-    @Test
-    public void isConnected_shouldReturnFalse_onException() throws IOException {
-        // Given
-        @SuppressWarnings("unchecked")
-        Call<ResponseBody> call = Mockito.mock(Call.class);
-        when(httpService.ping()).thenReturn(call);
-        when(call.execute()).thenThrow(new IOException());
-
-        // When
-        boolean connected = client.isConnected();
-
-        // Then
-        assertThat(connected).isFalse();
+        assertThat(result).isEqualTo(metadata);
     }
 
     @Test

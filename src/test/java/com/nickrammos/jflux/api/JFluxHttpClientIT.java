@@ -2,6 +2,7 @@ package com.nickrammos.jflux.api;
 
 import java.io.IOException;
 
+import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Series;
 import com.nickrammos.jflux.exception.InvalidQueryException;
 
@@ -19,7 +20,7 @@ public class JFluxHttpClientIT {
     private static final String DB_NAME = "test_" + System.currentTimeMillis();
     private static final String RP_NAME = "test_retention_policy";
 
-    private JFluxHttpClient client = new JFluxHttpClient.Builder(INFLUX_DB_URL).build();
+    private final JFluxHttpClient client = new JFluxHttpClient.Builder(INFLUX_DB_URL).build();
 
     @Before
     public void setup() throws IOException {
@@ -32,8 +33,12 @@ public class JFluxHttpClientIT {
     }
 
     @Test
-    public void testPing() {
-        assertThat(client.isConnected()).isTrue();
+    public void testPing() throws IOException {
+        ResponseMetadata metadata = client.ping();
+        assertThat(metadata.getTimestamp()).isNotNull();
+        assertThat(metadata.getRequestId()).isNotBlank();
+        assertThat(metadata.getDbBuildType()).isNotNull();
+        assertThat(metadata.getDbVersion()).isNotNull();
     }
 
     @Test

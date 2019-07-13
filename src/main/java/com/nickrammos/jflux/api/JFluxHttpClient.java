@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Series;
 import com.nickrammos.jflux.exception.InvalidQueryException;
 
@@ -64,16 +65,14 @@ public final class JFluxHttpClient implements AutoCloseable {
     /**
      * Tests the connection to the InfluxDB API and returns the result.
      *
-     * @return {@code true} if the API is reachable, {@code false} otherwise
+     * @return metadata about the InfluxDB instance
+     *
+     * @throws IOException if the instance is not reachable
      */
-    public boolean isConnected() {
+    public ResponseMetadata ping() throws IOException {
         Call<ResponseBody> call = service.ping();
-        try {
-            retrofit2.Response response = call.execute();
-            return response.isSuccessful();
-        } catch (IOException e) {
-            return false;
-        }
+        Response<ResponseBody> response = call.execute();
+        return responseConverter.convert(response).getMetadata();
     }
 
     /**
