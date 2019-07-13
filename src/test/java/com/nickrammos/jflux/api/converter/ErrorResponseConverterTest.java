@@ -2,7 +2,6 @@ package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
 
-import com.nickrammos.jflux.api.response.ApiError;
 import com.nickrammos.jflux.api.response.ApiResponse;
 
 import okhttp3.MediaType;
@@ -19,18 +18,16 @@ public class ErrorResponseConverterTest {
     @Test
     public void convert_shouldGetErrorFromErrorBody_whenCallFailed() throws IOException {
         // Given
-        int statusCode = 400;
         String errorMessage = "an error occurred";
         ResponseBody responseBody = ResponseBody.create(MediaType.get("application/json"),
                 "{\"error\": \"" + errorMessage + "\"}");
-        Response<ApiResponse> response = Response.error(statusCode, responseBody);
+        Response<ApiResponse> response = Response.error(400, responseBody);
 
         // When
-        ApiError apiError = converter.convert(response);
+        String result = converter.convert(response);
 
         // Then
-        assertThat(apiError.getStatusCode()).isEqualTo(statusCode);
-        assertThat(apiError.getMessage()).isEqualTo(errorMessage);
+        assertThat(result).isEqualTo(errorMessage);
     }
 
     @Test
@@ -39,9 +36,9 @@ public class ErrorResponseConverterTest {
         Response<ApiResponse> response = Response.success(null);
 
         // When
-        ApiError apiError = converter.convert(response);
+        String result = converter.convert(response);
 
         // Then
-        assertThat(apiError.getMessage()).isNull();
+        assertThat(result).isNull();
     }
 }

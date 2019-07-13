@@ -18,8 +18,6 @@ package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
 
-import com.nickrammos.jflux.api.response.ApiError;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
@@ -28,9 +26,9 @@ import retrofit2.Converter;
 import retrofit2.Response;
 
 /**
- * Converts a response from a failed InfluxDB API call to an {@link ApiError}.
+ * Extracts the response error message (if any) from an InfluxDB API call.
  */
-final class ErrorResponseConverter implements Converter<Response<?>, ApiError> {
+final class ErrorResponseConverter implements Converter<Response<?>, String> {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ErrorResponseConverter.class);
@@ -42,16 +40,13 @@ final class ErrorResponseConverter implements Converter<Response<?>, ApiError> {
     }
 
     @Override
-    public ApiError convert(Response<?> response) throws IOException {
-        String errorMessage;
+    public String convert(Response<?> response) throws IOException {
         if (response.errorBody() != null) {
-            errorMessage = getErrorMessageFromErrorBody(response.errorBody());
+            return getErrorMessageFromErrorBody(response.errorBody());
         }
         else {
-            errorMessage = null;
+            return null;
         }
-
-        return new ApiError.Builder(response.code(), errorMessage).build();
     }
 
     private String getErrorMessageFromErrorBody(ResponseBody errorBody) throws IOException {

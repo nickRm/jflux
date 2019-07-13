@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
@@ -39,9 +38,9 @@ import org.slf4j.LoggerFactory;
 import retrofit2.Converter;
 
 /**
- * Converts a {@link ResponseBody} from a call to the InfluxDB API, to an {@link ApiResponse}.
+ * Extracts the results from a {@link ResponseBody} of a call to the InfluxDB API.
  */
-final class ResponseBodyConverter implements Converter<ResponseBody, ApiResponse> {
+final class ResponseBodyConverter implements Converter<ResponseBody, List<QueryResult>> {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ResponseBodyConverter.class);
@@ -53,7 +52,7 @@ final class ResponseBodyConverter implements Converter<ResponseBody, ApiResponse
     }
 
     @Override
-    public ApiResponse convert(ResponseBody responseBody) throws IOException {
+    public List<QueryResult> convert(ResponseBody responseBody) throws IOException {
         String content = responseBody.string();
         if (content.endsWith("\n")) {
             content = content.substring(0, content.length() - 1);
@@ -63,14 +62,14 @@ final class ResponseBodyConverter implements Converter<ResponseBody, ApiResponse
         return responseFromDto(responseDto);
     }
 
-    private ApiResponse responseFromDto(ResponseDto responseDto) {
+    private List<QueryResult> responseFromDto(ResponseDto responseDto) {
         List<QueryResult> results = new LinkedList<>();
         if (responseDto.results != null) {
             for (ResultDto resultDto : responseDto.results) {
                 results.add(resultFromDto(resultDto));
             }
         }
-        return new ApiResponse.Builder().results(results).build();
+        return results;
     }
 
     private QueryResult resultFromDto(ResultDto resultDto) {

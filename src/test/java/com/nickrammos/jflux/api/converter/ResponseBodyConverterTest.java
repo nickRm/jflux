@@ -2,8 +2,9 @@ package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
-import com.nickrammos.jflux.api.response.ApiResponse;
+import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
 
@@ -48,11 +49,13 @@ public class ResponseBodyConverterTest {
 		// @formatter:on
 
         // When
-        ApiResponse response =
+        List<QueryResult> response =
                 converter.convert(ResponseBody.create(MediaType.get("application/json"), content));
 
         // Then
-        Series series = response.getResults().get(0).getSeries().get(0);
+        assertThat(response).isNotNull();
+
+        Series series = response.get(0).getSeries().get(0);
         assertThat(series.getName()).isEqualTo(measurementName);
         assertThat(series.getTags()).containsExactly(tagName);
 
