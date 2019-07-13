@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import com.nickrammos.jflux.api.response.ApiError;
+import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Series;
 import com.nickrammos.jflux.exception.InvalidQueryException;
 
@@ -48,31 +49,30 @@ public final class JFluxHttpClient implements AutoCloseable {
             + ".*");
 
     private final InfluxHttpService service;
-    private final ErrorResponseConverter errorResponseConverter;
+    private final ApiResponseConverter responseConverter;
 
     /**
      * Initializes a new instance setting the service to be used for calls to the API.
      *
-     * @param service the API service
+     * @param service           the API service
+     * @param responseConverter used to convert API responses
      */
-    private JFluxHttpClient(InfluxHttpService service) {
+    private JFluxHttpClient(InfluxHttpService service, ApiResponseConverter responseConverter) {
         this.service = service;
-        errorResponseConverter = new ErrorResponseConverter();
+        this.responseConverter = responseConverter;
     }
 
     /**
      * Tests the connection to the InfluxDB API and returns the result.
      *
-     * @return {@code true} if the API is reachable, {@code false} otherwise
+     * @return metadata about the InfluxDB instance
+     *
+     * @throws IOException if the instance is not reachable
      */
-    public boolean isConnected() {
+    public ResponseMetadata ping() throws IOException {
         Call<ResponseBody> call = service.ping();
-        try {
-            retrofit2.Response response = call.execute();
-            return response.isSuccessful();
-        } catch (IOException e) {
-            return false;
-        }
+        Response<ResponseBody> response = call.execute();
+        return responseConverter.convert(response).getMetadata();
     }
 
     /**
@@ -178,18 +178,17 @@ public final class JFluxHttpClient implements AutoCloseable {
         callApi(service::alter, statement);
     }
 
-    private ApiResponse callApi(Function<String, Call<ApiResponse>> apiMethod, String statement)
+    private ApiResponse callApi(Function<String, Call<ResponseBody>> apiMethod, String statement)
             throws IOException {
         LOGGER.debug("Executing statement '{}'", statement);
-        Call<ApiResponse> call = apiMethod.apply(statement);
-        Response<ApiResponse> response = call.execute();
-        if (response.isSuccessful() && (response.body() == null || !response.body().hasError())) {
-            return response.body();
+        Call<ResponseBody> call = apiMethod.apply(statement);
+        Response<ResponseBody> responseWrapper = call.execute();
+        ApiResponse response = responseConverter.convert(responseWrapper);
+        if (response.hasError()) {
+            throw new InvalidQueryException(response.getErrorMessage());
         }
         else {
-            ApiError apiError = errorResponseConverter.convert(response);
-            LOGGER.error("Statement failed with {}", apiError);
-            throw new InvalidQueryException(apiError.getMessage());
+            return response;
         }
     }
 
@@ -222,10 +221,9 @@ public final class JFluxHttpClient implements AutoCloseable {
         public JFluxHttpClient build() {
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(host)
-                    .addConverterFactory(new InfluxConverterFactory())
                     .build();
             InfluxHttpService service = retrofit.create(InfluxHttpService.class);
-            return new JFluxHttpClient(service);
+            return new JFluxHttpClient(service, new ApiResponseConverter());
         }
     }
 }

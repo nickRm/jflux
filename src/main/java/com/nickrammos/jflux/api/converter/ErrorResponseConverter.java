@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package com.nickrammos.jflux.api;
+package com.nickrammos.jflux.api.converter;
 
 import java.io.IOException;
-
-import com.nickrammos.jflux.api.response.ApiError;
-import com.nickrammos.jflux.api.response.ApiResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.ResponseBody;
@@ -29,9 +26,9 @@ import retrofit2.Converter;
 import retrofit2.Response;
 
 /**
- * Converts a response from a failed InfluxDB API call to an {@link ApiError}.
+ * Extracts the response error message (if any) from an InfluxDB API call.
  */
-final class ErrorResponseConverter implements Converter<Response<ApiResponse>, ApiError> {
+final class ErrorResponseConverter implements Converter<Response<?>, String> {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ErrorResponseConverter.class);
@@ -43,19 +40,13 @@ final class ErrorResponseConverter implements Converter<Response<ApiResponse>, A
     }
 
     @Override
-    public ApiError convert(Response<ApiResponse> response) throws IOException {
-        String errorMessage;
+    public String convert(Response<?> response) throws IOException {
         if (response.errorBody() != null) {
-            errorMessage = getErrorMessageFromErrorBody(response.errorBody());
-        }
-        else if (response.body() != null) {
-            errorMessage = response.body().getErrorMessage();
+            return getErrorMessageFromErrorBody(response.errorBody());
         }
         else {
-            errorMessage = null;
+            return null;
         }
-
-        return new ApiError.Builder(response.code(), errorMessage).build();
     }
 
     private String getErrorMessageFromErrorBody(ResponseBody errorBody) throws IOException {

@@ -32,6 +32,9 @@ import java.util.Objects;
  */
 public final class ApiResponse {
 
+    private final ResponseMetadata metadata;
+    private final int statusCode;
+    private final String errorMessage;
     private final List<QueryResult> results;
 
     /**
@@ -40,11 +43,28 @@ public final class ApiResponse {
      * @param builder used to construct this instance
      */
     private ApiResponse(Builder builder) {
+        this.metadata = builder.metadata;
+        this.statusCode = builder.statusCode;
+        this.errorMessage = builder.errorMessage;
         this.results = builder.results;
     }
 
-    public List<QueryResult> getResults() {
-        return new ArrayList<>(results);
+    /**
+     * Gets the metadata for this response.
+     *
+     * @return the response metadata
+     */
+    public ResponseMetadata getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * Gets the status code of this response.
+     *
+     * @return the response status code
+     */
+    public int getStatusCode() {
+        return statusCode;
     }
 
     /**
@@ -64,16 +84,21 @@ public final class ApiResponse {
      * @return the response error message, or {@code null} if no error
      */
     public String getErrorMessage() {
-        return results.stream()
+        return errorMessage != null ? errorMessage : results.stream()
                 .map(QueryResult::getError)
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
 
+    public List<QueryResult> getResults() {
+        return new ArrayList<>(results);
+    }
+
     @Override
     public String toString() {
-        return "ApiResponse{" + "results=" + results + '}';
+        return "ApiResponse{" + ", statusCode=" + statusCode + ", " + "errorMessage='"
+                + errorMessage + '\'' + ", results=" + results + '}';
     }
 
     /**
@@ -81,13 +106,64 @@ public final class ApiResponse {
      */
     public static final class Builder {
 
+        private ResponseMetadata metadata;
+        private int statusCode;
+        private String errorMessage;
         private List<QueryResult> results = Collections.emptyList();
 
+        /**
+         * Sets the metadata for this response.
+         *
+         * @param metadata the response metadata
+         *
+         * @return this builder
+         */
+        public Builder metadata(ResponseMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        /**
+         * Sets the status code for this response.
+         *
+         * @param statusCode the response status code
+         *
+         * @return this builder
+         */
+        public Builder statusCode(int statusCode) {
+            this.statusCode = statusCode;
+            return this;
+        }
+
+        /**
+         * Sets the error message for this response.
+         *
+         * @param errorMessage the response error message, or {@code null} for no error
+         *
+         * @return this builder
+         */
+        public Builder errorMessage(String errorMessage) {
+            this.errorMessage = errorMessage;
+            return this;
+        }
+
+        /**
+         * Sets the query results for this response.
+         *
+         * @param results the response query results
+         *
+         * @return this builder
+         */
         public Builder results(List<QueryResult> results) {
             this.results = results;
             return this;
         }
 
+        /**
+         * Builds a new {@link ApiResponse} instance with the values set in this builder.
+         *
+         * @return the newly built instance
+         */
         public ApiResponse build() {
             return new ApiResponse(this);
         }

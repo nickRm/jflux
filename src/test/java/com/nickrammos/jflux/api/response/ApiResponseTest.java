@@ -10,6 +10,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiResponseTest {
 
     @Test
+    public void hasError_shouldReturnTrue_ifErrorMessagePresent() {
+        String errorMessage = "error";
+        ApiResponse apiResponse = new ApiResponse.Builder().errorMessage(errorMessage).build();
+        assertThat(apiResponse.hasError()).isTrue();
+    }
+
+    @Test
     public void hasError_shouldReturnTrue_ifOneResultHasError() {
         String errorMessage = "error";
         QueryResult result = new QueryResult.Builder().error(errorMessage).build();

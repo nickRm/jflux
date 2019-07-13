@@ -16,8 +16,6 @@
 
 package com.nickrammos.jflux.api;
 
-import com.nickrammos.jflux.api.response.ApiResponse;
-
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -40,7 +38,7 @@ interface InfluxHttpService {
      * @return the query result
      */
     @GET("/query")
-    Call<ApiResponse> query(@Query("q") String query);
+    Call<ResponseBody> query(@Query("q") String query);
 
     /**
      * Executes DDL statements against InfluxDB.
@@ -50,5 +48,5 @@ interface InfluxHttpService {
      * @return the execution result
      */
     @POST("/query")
-    Call<ApiResponse> alter(@Query("q") String statement);
+    Call<ResponseBody> alter(@Query("q") String statement);
 }

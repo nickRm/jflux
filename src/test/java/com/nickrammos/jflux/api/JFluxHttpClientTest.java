@@ -5,11 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.Series;
-import com.nickrammos.jflux.exception.InvalidQueryException;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -18,7 +19,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -31,65 +32,46 @@ public class JFluxHttpClientTest {
     @Mock
     private InfluxHttpService httpService;
 
+    @Mock
+    private ApiResponseConverter responseConverter;
+
     @InjectMocks
     private JFluxHttpClient client;
 
     @Test
-    public void isConnected_shouldReturnTrue_onSuccessfulResponse() throws IOException {
+    public void ping_shouldReturnMetadata_onSuccessfulResponse() throws IOException {
         // Given
         @SuppressWarnings("unchecked")
         Call<ResponseBody> call = Mockito.mock(Call.class);
+        Response<ResponseBody> responseWrapper = Response.success(null);
         when(httpService.ping()).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(null));
+        when(call.execute()).thenReturn(responseWrapper);
+
+        ResponseMetadata metadata = new ResponseMetadata.Builder().build();
+        ApiResponse apiResponse = new ApiResponse.Builder().metadata(metadata).build();
+        when(responseConverter.convert(responseWrapper)).thenReturn(apiResponse);
 
         // When
-        boolean connected = client.isConnected();
+        ResponseMetadata result = client.ping();
 
         // Then
-        assertThat(connected).isTrue();
-    }
-
-    @Test
-    public void isConnected_shouldReturnFalse_onUnsuccessfulResponse() throws IOException {
-        // Given
-        @SuppressWarnings("unchecked")
-        Call<ResponseBody> call = Mockito.mock(Call.class);
-        when(httpService.ping()).thenReturn(call);
-        when(call.execute()).thenReturn(
-                Response.error(500, ResponseBody.create(MediaType.get("application/json"), "")));
-
-        // When
-        boolean connected = client.isConnected();
-
-        // Then
-        assertThat(connected).isFalse();
-    }
-
-    @Test
-    public void isConnected_shouldReturnFalse_onException() throws IOException {
-        // Given
-        @SuppressWarnings("unchecked")
-        Call<ResponseBody> call = Mockito.mock(Call.class);
-        when(httpService.ping()).thenReturn(call);
-        when(call.execute()).thenThrow(new IOException());
-
-        // When
-        boolean connected = client.isConnected();
-
-        // Then
-        assertThat(connected).isFalse();
+        assertThat(result).isEqualTo(metadata);
     }
 
     @Test
     public void query_shouldReturnSingleSeries() throws IOException {
         // Given
         String query = "SELECT * FROM measurement_1";
-        ApiResponse response = createResponse();
 
         @SuppressWarnings("unchecked")
-        Call<ApiResponse> call = Mockito.mock(Call.class);
+        Call<ResponseBody> call = Mockito.mock(Call.class);
         when(httpService.query(query)).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(response));
+        ResponseBody responseBody = ResponseBody.create(MediaType.get("application/json"), "");
+        Response<ResponseBody> responseWrapper = Response.success(responseBody);
+        when(call.execute()).thenReturn(responseWrapper);
+
+        ApiResponse response = createResponse();
+        when(responseConverter.convert(responseWrapper)).thenReturn(response);
 
         // When
         Series series = client.query(query);
@@ -102,14 +84,18 @@ public class JFluxHttpClientTest {
     public void query_shouldReturnNull_ifNoResults() throws IOException {
         // Given
         String query = "SELECT * FROM non_existent_measurement";
+
+        @SuppressWarnings("unchecked")
+        Call<ResponseBody> call = Mockito.mock(Call.class);
+        when(httpService.query(query)).thenReturn(call);
+        ResponseBody responseBody = ResponseBody.create(MediaType.get("application/json"), "");
+        Response<ResponseBody> responseWrapper = Response.success(responseBody);
+        when(call.execute()).thenReturn(responseWrapper);
+
         QueryResult queryResult = new QueryResult.Builder().build();
         ApiResponse response =
                 new ApiResponse.Builder().results(Collections.singletonList(queryResult)).build();
-
-        @SuppressWarnings("unchecked")
-        Call<ApiResponse> call = Mockito.mock(Call.class);
-        when(httpService.query(query)).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(response));
+        when(responseConverter.convert(responseWrapper)).thenReturn(response);
 
         // When
         Series series = client.query(query);
@@ -136,56 +122,20 @@ public class JFluxHttpClientTest {
         client.query(query);
     }
 
-    @Test(expected = InvalidQueryException.class)
-    public void query_shouldThrowException_ifQuerySyntaxIsInvalid() throws IOException {
-        // Given
-        String query = "SELECT * FROM FROM measurement_1";
-        ResponseBody errorBody = ResponseBody.create(MediaType.get("application/json"),
-                "{\"error\": \"some error\"}");
-        Response<ApiResponse> errorResponse = Response.error(400, errorBody);
-
-        @SuppressWarnings("unchecked")
-        Call<ApiResponse> call = Mockito.mock(Call.class);
-        when(httpService.query(query)).thenReturn(call);
-        when(call.execute()).thenReturn(errorResponse);
-
-        // When
-        client.query(query);
-
-        // Then
-        // Expect exception
-    }
-
-    @Test(expected = InvalidQueryException.class)
-    public void query_shouldThrowException_ifQueryIsInvalid() throws IOException {
-        // Given
-        String query = "SELECT * FROM non_existent_measurement";
-        QueryResult queryResult = new QueryResult.Builder().error("some error").build();
-        ApiResponse apiResponse =
-                new ApiResponse.Builder().results(Collections.singletonList(queryResult)).build();
-
-        @SuppressWarnings("unchecked")
-        Call<ApiResponse> call = Mockito.mock(Call.class);
-        when(httpService.query(query)).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(apiResponse));
-
-        // When
-        client.query(query);
-
-        // Then
-        // Expect exception
-    }
-
     @Test
     public void multiSeriesQuery_shouldReturnSingleResult() throws IOException {
         // Given
         String query = "SELECT * FROM measurement_1";
-        ApiResponse response = createResponse();
 
         @SuppressWarnings("unchecked")
-        Call<ApiResponse> call = Mockito.mock(Call.class);
+        Call<ResponseBody> call = Mockito.mock(Call.class);
         when(httpService.query(query)).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(response));
+        ResponseBody responseBody = ResponseBody.create(MediaType.get("application/json"), "");
+        Response<ResponseBody> responseWrapper = Response.success(responseBody);
+        when(call.execute()).thenReturn(responseWrapper);
+
+        ApiResponse response = createResponse();
+        when(responseConverter.convert(responseWrapper)).thenReturn(response);
 
         // When
         QueryResult result = client.queryMultipleSeries(query);
@@ -210,12 +160,16 @@ public class JFluxHttpClientTest {
     public void multiResultQuery_shouldReturnResponse() throws IOException {
         // Given
         String query = "SELECT * FROM measurement_1";
-        ApiResponse response = createResponse();
 
         @SuppressWarnings("unchecked")
-        Call<ApiResponse> call = Mockito.mock(Call.class);
+        Call<ResponseBody> call = Mockito.mock(Call.class);
         when(httpService.query(query)).thenReturn(call);
-        when(call.execute()).thenReturn(Response.success(response));
+        ResponseBody responseBody = ResponseBody.create(MediaType.get("application/json"), "");
+        Response<ResponseBody> responseWrapper = Response.success(responseBody);
+        when(call.execute()).thenReturn(responseWrapper);
+
+        ApiResponse response = createResponse();
+        when(responseConverter.convert(responseWrapper)).thenReturn(response);
 
         // When
         ApiResponse actualResponse = client.batchQuery(query);
