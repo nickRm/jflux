@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.List;
 
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
-import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -55,11 +55,10 @@ public class ResponseBodyConverterTest {
         // Then
         assertThat(response).isNotNull();
 
-        Series series = response.get(0).getSeries().get(0);
-        assertThat(series.getName()).isEqualTo(measurementName);
-        assertThat(series.getTags()).containsExactly(tagName);
+        Measurement measurement = response.get(0).getResults().get(0);
+        assertThat(measurement.getName()).isEqualTo(measurementName);
 
-        Point point = series.getPoints().get(0);
+        Point point = measurement.getPoints().get(0);
         assertThat(point.getTimestamp()).isEqualTo(timestamp);
         assertThat(point.getTags()).containsOnlyKeys(tagName);
         assertThat(point.getTags().get(tagName)).isEqualTo(tagValue);

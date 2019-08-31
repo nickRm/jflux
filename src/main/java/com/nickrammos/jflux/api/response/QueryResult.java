@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.nickrammos.jflux.domain.Series;
+import com.nickrammos.jflux.domain.Measurement;
 
 /**
  * An InfluxQL result, acts as a wrapper for the (possibly multiple) series returned.
@@ -37,7 +37,7 @@ public final class QueryResult {
 
     private final int statementId;
     private final String error;
-    private final List<Series> series;
+    private final List<Measurement> results;
 
     /**
      * Instances of this class can only be constructed using {@link Builder}.
@@ -47,7 +47,7 @@ public final class QueryResult {
     private QueryResult(Builder builder) {
         statementId = builder.statementId;
         error = builder.error;
-        series = builder.series;
+        results = builder.results;
     }
 
     /**
@@ -76,14 +76,14 @@ public final class QueryResult {
      *
      * @return this result's series, or an empty list if none are available
      */
-    public List<Series> getSeries() {
-        return new ArrayList<>(series);
+    public List<Measurement> getResults() {
+        return new ArrayList<>(results);
     }
 
     @Override
     public String toString() {
         return "QueryResult{" + "statementId=" + statementId + ", error='" + error + '\''
-                + ", series=" + series + '}';
+                + ", results=" + results + '}';
     }
 
     /**
@@ -93,7 +93,7 @@ public final class QueryResult {
 
         private int statementId;
         private String error;
-        private List<Series> series = Collections.emptyList();
+        private List<Measurement> results = Collections.emptyList();
 
         public Builder statementId(int statementId) {
             this.statementId = statementId;
@@ -105,8 +105,8 @@ public final class QueryResult {
             return this;
         }
 
-        public Builder series(List<Series> series) {
-            this.series = series;
+        public Builder series(List<Measurement> results) {
+            this.results = results;
             return this;
         }
 

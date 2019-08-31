@@ -25,7 +25,7 @@ import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
-import com.nickrammos.jflux.domain.Series;
+import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.exception.InvalidQueryException;
 
 import okhttp3.ResponseBody;
@@ -99,13 +99,13 @@ public final class JFluxHttpClient implements AutoCloseable {
      * @see #queryMultipleSeries(String)
      * @see #batchQuery(String)
      */
-    public Series query(String query) throws IOException {
+    public Measurement query(String query) throws IOException {
         if (MULTI_SERIES_PATTERN.matcher(query).matches()) {
             throw new IllegalArgumentException("Query cannot span multiple measurements");
         }
 
-        List<Series> series = queryMultipleSeries(query).getSeries();
-        return series.isEmpty() ? null : series.get(0);
+        List<Measurement> measurements = queryMultipleSeries(query).getResults();
+        return measurements.isEmpty() ? null : measurements.get(0);
     }
 
     /**

@@ -3,7 +3,7 @@ package com.nickrammos.jflux.api;
 import java.io.IOException;
 
 import com.nickrammos.jflux.api.response.ResponseMetadata;
-import com.nickrammos.jflux.domain.Series;
+import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.exception.InvalidQueryException;
 
 import org.junit.After;
@@ -43,14 +43,14 @@ public class JFluxHttpClientIT {
 
     @Test
     public void testQuery() throws IOException {
-        Series series = client.query("SHOW DATABASES");
-        assertThat(series).isNotNull();
+        Measurement measurement = client.query("SHOW DATABASES");
+        assertThat(measurement).isNotNull();
     }
 
     @Test
     public void testQueryWithNoResults() throws IOException {
-        Series series = client.query("SHOW MEASUREMENTS ON " + DB_NAME);
-        assertThat(series).isNull();
+        Measurement measurement = client.query("SHOW MEASUREMENTS ON " + DB_NAME);
+        assertThat(measurement).isNull();
     }
 
     @Test(expected = InvalidQueryException.class)
