@@ -27,7 +27,7 @@ import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
-import com.nickrammos.jflux.exception.InvalidQueryException;
+import com.nickrammos.jflux.exception.InfluxClientException;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -198,7 +198,7 @@ public final class JFluxHttpClient implements AutoCloseable {
      * @return the API's response
      *
      * @throws IOException           if InfluxDB cannot be reached
-     * @throws InvalidQueryException if the points are not in the correct format
+     * @throws InfluxClientException if the points are not in the correct format
      */
     public ApiResponse write(String database, String lineProtocol) throws IOException {
         LOGGER.debug("Writing line '{}' to {}", lineProtocol, database);
@@ -221,7 +221,7 @@ public final class JFluxHttpClient implements AutoCloseable {
      * @return the API's response
      *
      * @throws IOException           if InfluxDB cannot be reached
-     * @throws InvalidQueryException if the points are not in the correct format
+     * @throws InfluxClientException if the points are not in the correct format
      */
     public ApiResponse write(String database, String retentionPolicy, String lineProtocol)
             throws IOException {
@@ -242,7 +242,7 @@ public final class JFluxHttpClient implements AutoCloseable {
         LOGGER.debug("Received response: {}", responseWrapper);
         ApiResponse response = responseConverter.convert(responseWrapper);
         if (response.hasError()) {
-            throw new InvalidQueryException(response.getErrorMessage());
+            throw new InfluxClientException(response.getErrorMessage());
         }
         else {
             return response;

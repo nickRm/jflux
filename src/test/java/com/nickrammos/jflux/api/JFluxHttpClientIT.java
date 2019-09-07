@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
-import com.nickrammos.jflux.exception.InvalidQueryException;
+import com.nickrammos.jflux.exception.InfluxClientException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -61,17 +61,17 @@ public class JFluxHttpClientIT {
         assertThat(measurement).isNull();
     }
 
-    @Test(expected = InvalidQueryException.class)
+    @Test(expected = InfluxClientException.class)
     public void testSyntaxError() throws IOException {
         client.query("SHOW DATABASE");
     }
 
-    @Test(expected = InvalidQueryException.class)
+    @Test(expected = InfluxClientException.class)
     public void testQueryError() throws IOException {
         client.query("SHOW RETENTION POLICIES ON non_existent_db");
     }
 
-    @Test(expected = InvalidQueryException.class)
+    @Test(expected = InfluxClientException.class)
     public void testStatementWithError() throws IOException {
         // Trying to execute incomplete statement.
         client.execute("CREATE RETENTION POLICY");
@@ -129,7 +129,7 @@ public class JFluxHttpClientIT {
         assertThat(result.getPoints()).hasSize(1);
     }
 
-    @Test(expected = InvalidQueryException.class)
+    @Test(expected = InfluxClientException.class)
     public void write_throwsException_ifLineProtocolIsInvalid() throws IOException {
         client.write(DB_NAME, "my_measurement,tag=1,field=1");
     }
