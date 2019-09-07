@@ -16,8 +16,10 @@
 
 package com.nickrammos.jflux.api;
 
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
@@ -49,4 +51,28 @@ interface InfluxHttpService {
      */
     @POST("/query")
     Call<ResponseBody> alter(@Query("q") String statement);
+
+    /**
+     * Writes point(s) to InfluxDB.
+     *
+     * @param db          the database to write to
+     * @param requestBody the points to write
+     *
+     * @return the result of the call
+     */
+    @POST("/write")
+    Call<ResponseBody> write(@Query("db") String db, @Body RequestBody requestBody);
+
+    /**
+     * Writes point(s) to InfluxDB.
+     *
+     * @param db          the database to write to
+     * @param rp          the retention policy to use
+     * @param requestBody the points to write
+     *
+     * @return the result of the call
+     */
+    @POST("/write")
+    Call<ResponseBody> write(@Query("db") String db, @Query("rp") String rp,
+            @Body RequestBody requestBody);
 }
