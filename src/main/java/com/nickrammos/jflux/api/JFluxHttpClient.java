@@ -19,15 +19,18 @@ package com.nickrammos.jflux.api;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
-import com.nickrammos.jflux.domain.Series;
-import com.nickrammos.jflux.exception.InvalidQueryException;
+import com.nickrammos.jflux.domain.Measurement;
+import com.nickrammos.jflux.exception.InfluxClientException;
 
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +50,9 @@ public final class JFluxHttpClient implements AutoCloseable {
     private static final Pattern MULTI_SERIES_PATTERN = Pattern.compile("SELECT .* FROM .+,.+");
     private static final Pattern SELECT_INTO_PATTERN = Pattern.compile("SELECT .* INTO .* FROM "
             + ".*");
+
+    private static final MediaType LINE_PROTOCOL_MEDIA_TYPE =
+            MediaType.get("application/octet-stream");
 
     private final InfluxHttpService service;
     private final ApiResponseConverter responseConverter;
@@ -99,13 +105,13 @@ public final class JFluxHttpClient implements AutoCloseable {
      * @see #queryMultipleSeries(String)
      * @see #batchQuery(String)
      */
-    public Series query(String query) throws IOException {
+    public Measurement query(String query) throws IOException {
         if (MULTI_SERIES_PATTERN.matcher(query).matches()) {
             throw new IllegalArgumentException("Query cannot span multiple measurements");
         }
 
-        List<Series> series = queryMultipleSeries(query).getSeries();
-        return series.isEmpty() ? null : series.get(0);
+        List<Measurement> measurements = queryMultipleSeries(query).getResults();
+        return measurements.isEmpty() ? null : measurements.get(0);
     }
 
     /**
@@ -178,14 +184,65 @@ public final class JFluxHttpClient implements AutoCloseable {
         callApi(service::alter, statement);
     }
 
+    /**
+     * Writes points into the default retention policy.
+     * <p>
+     * Points to be written are specified using InfluxDB's
+     * <a href="https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/">
+     * line protocol</a> format. Multiple points can be written by separating them with a {@code \n}
+     * character.
+     *
+     * @param database     the database to write to
+     * @param lineProtocol the point(s) to write
+     *
+     * @return the API's response
+     *
+     * @throws IOException           if InfluxDB cannot be reached
+     * @throws InfluxClientException if the points are not in the correct format
+     */
+    public ApiResponse write(String database, String lineProtocol) throws IOException {
+        LOGGER.debug("Writing line '{}' to {}", lineProtocol, database);
+        RequestBody requestBody = RequestBody.create(LINE_PROTOCOL_MEDIA_TYPE, lineProtocol);
+        return callApi(() -> service.write(database, requestBody));
+    }
+
+    /**
+     * Writes points into the specified retention policy.
+     * <p>
+     * Points to be written are specified using InfluxDB's
+     * <a href="https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/">
+     * line protocol</a> format. Multiple points can be written by separating them with a {@code \n}
+     * character.
+     *
+     * @param database        the database to write to
+     * @param retentionPolicy the retention policy to use
+     * @param lineProtocol    the point(s) to write
+     *
+     * @return the API's response
+     *
+     * @throws IOException           if InfluxDB cannot be reached
+     * @throws InfluxClientException if the points are not in the correct format
+     */
+    public ApiResponse write(String database, String retentionPolicy, String lineProtocol)
+            throws IOException {
+        LOGGER.debug("Writing line '{}' to {}.{}", lineProtocol, database, retentionPolicy);
+        RequestBody requestBody = RequestBody.create(LINE_PROTOCOL_MEDIA_TYPE, lineProtocol);
+        return callApi(() -> service.write(database, retentionPolicy, requestBody));
+    }
+
     private ApiResponse callApi(Function<String, Call<ResponseBody>> apiMethod, String statement)
             throws IOException {
         LOGGER.debug("Executing statement '{}'", statement);
-        Call<ResponseBody> call = apiMethod.apply(statement);
+        return callApi(() -> apiMethod.apply(statement));
+    }
+
+    private ApiResponse callApi(Supplier<Call<ResponseBody>> apiMethod) throws IOException {
+        Call<ResponseBody> call = apiMethod.get();
         Response<ResponseBody> responseWrapper = call.execute();
+        LOGGER.debug("Received response: {}", responseWrapper);
         ApiResponse response = responseConverter.convert(responseWrapper);
         if (response.hasError()) {
-            throw new InvalidQueryException(response.getErrorMessage());
+            throw new InfluxClientException(response.getErrorMessage());
         }
         else {
             return response;

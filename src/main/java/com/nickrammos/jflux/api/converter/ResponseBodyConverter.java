@@ -19,15 +19,13 @@ package com.nickrammos.jflux.api.converter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.nickrammos.jflux.api.response.QueryResult;
+import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
-import com.nickrammos.jflux.domain.Series;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -73,40 +71,24 @@ final class ResponseBodyConverter implements Converter<ResponseBody, List<QueryR
     }
 
     private QueryResult resultFromDto(ResultDto resultDto) {
-        List<Series> series = new LinkedList<>();
+        List<Measurement> measurements = new LinkedList<>();
         if (resultDto.series != null) {
             for (SeriesDto seriesDto : resultDto.series) {
-                series.add(seriesFromDto(seriesDto));
+                measurements.add(seriesFromDto(seriesDto));
             }
         }
         return new QueryResult.Builder().statementId(resultDto.statementId)
                 .error(resultDto.error)
-                .series(series)
+                .series(measurements)
                 .build();
     }
 
-    private Series seriesFromDto(SeriesDto seriesDto) {
-        Set<String> tagSet = tagSetFromSeriesDto(seriesDto);
+    private Measurement seriesFromDto(SeriesDto seriesDto) {
         List<Point> points = pointsFromSeriesDto(seriesDto);
 
-        return new Series.Builder().name(seriesDto.name)
-                .tags(tagSet)
+        return new Measurement.Builder().name(seriesDto.name)
                 .points(points)
                 .build();
-    }
-
-    private Set<String> tagSetFromSeriesDto(SeriesDto seriesDto) {
-        Set<String> tagSet = new HashSet<>();
-        if (seriesDto.columns != null && seriesDto.values != null && seriesDto.values.length > 0) {
-            int startIndex = seriesDto.columns[0].equals("time") ? 1 : 0;
-            for (int i = startIndex; i < seriesDto.columns.length; i++) {
-                Object value = seriesDto.values[0][i];
-                if (!(value instanceof Number || value instanceof Boolean)) {
-                    tagSet.add(seriesDto.columns[i]);
-                }
-            }
-        }
-        return tagSet;
     }
 
     private List<Point> pointsFromSeriesDto(SeriesDto seriesDto) {

@@ -3,14 +3,13 @@ package com.nickrammos.jflux.api;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import com.nickrammos.jflux.api.converter.ApiResponseConverter;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
+import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
-import com.nickrammos.jflux.domain.Series;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -74,10 +73,10 @@ public class JFluxHttpClientTest {
         when(responseConverter.convert(responseWrapper)).thenReturn(response);
 
         // When
-        Series series = client.query(query);
+        Measurement measurement = client.query(query);
 
         // Then
-        assertThat(series).isEqualTo(response.getResults().get(0).getSeries().get(0));
+        assertThat(measurement).isEqualTo(response.getResults().get(0).getResults().get(0));
     }
 
     @Test
@@ -98,10 +97,10 @@ public class JFluxHttpClientTest {
         when(responseConverter.convert(responseWrapper)).thenReturn(response);
 
         // When
-        Series series = client.query(query);
+        Measurement measurement = client.query(query);
 
         // Then
-        assertThat(series).isNull();
+        assertThat(measurement).isNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -185,12 +184,11 @@ public class JFluxHttpClientTest {
     }
 
     private static ApiResponse createResponse() {
-        Set<String> tags = Collections.singleton("tag");
         List<Point> points = Collections.singletonList(new Point.Builder().build());
-        Series series = new Series.Builder().name("series").tags(tags).points(points).build();
+        Measurement measurement = new Measurement.Builder().name("series").points(points).build();
 
         QueryResult result = new QueryResult.Builder().statementId(0)
-                .series(Collections.singletonList(series))
+                .series(Collections.singletonList(measurement))
                 .build();
 
         return new ApiResponse.Builder().results(Collections.singletonList(result)).build();

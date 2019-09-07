@@ -17,19 +17,17 @@
 package com.nickrammos.jflux.domain;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
- * A collection of data that share a retention policy, measurement, and tag set.
+ * A container of {@link Point Points}, roughly equivalent to a relational DB table.
  *
  * @see Builder
  */
-public final class Series {
+public final class Measurement {
 
     private final String name;
-    private final Set<String> tags;
     private final List<Point> points;
 
     /**
@@ -37,34 +35,24 @@ public final class Series {
      *
      * @param builder used to construct the instance
      */
-    private Series(Builder builder) {
+    private Measurement(Builder builder) {
         name = builder.name;
-        tags = builder.tags;
         points = builder.points;
     }
 
     /**
-     * Gets the name of this series.
+     * Gets the name of this measurement.
      *
-     * @return the series name, or {@code null} if not available
+     * @return the measurement name, or {@code null} if not available
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Gets the tags for this series.
+     * Gets the points in this measurement.
      *
-     * @return the series tags, or an empty set if none
-     */
-    public Set<String> getTags() {
-        return new HashSet<>(tags);
-    }
-
-    /**
-     * Gets the points in this series.
-     *
-     * @return the serie's points, or an empty list if none
+     * @return the measurement's points, or an empty list if none
      */
     public List<Point> getPoints() {
         return new ArrayList<>(points);
@@ -72,25 +60,19 @@ public final class Series {
 
     @Override
     public String toString() {
-        return "Series{" + "name='" + name + '\'' + ", tags=" + tags + ", points=" + points + '}';
+        return "Measurement{" + "name='" + name + '\'' + ", points=" + points + '}';
     }
 
     /**
-     * Creates instances of {@link Series}.
+     * Creates instances of {@link Measurement}.
      */
     public static final class Builder {
 
         private String name;
-        private Set<String> tags;
-        private List<Point> points;
+        private List<Point> points = Collections.emptyList();
 
         public Builder name(String name) {
             this.name = name;
-            return this;
-        }
-
-        public Builder tags(Set<String> tags) {
-            this.tags = tags;
             return this;
         }
 
@@ -99,8 +81,8 @@ public final class Series {
             return this;
         }
 
-        public Series build() {
-            return new Series(this);
+        public Measurement build() {
+            return new Measurement(this);
         }
     }
 }
