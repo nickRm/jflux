@@ -56,6 +56,7 @@ public final class JFluxHttpClient implements AutoCloseable {
 
     private final InfluxHttpService service;
     private final ApiResponseConverter responseConverter;
+    private String hostUrl;
 
     /**
      * Initializes a new instance setting the service to be used for calls to the API.
@@ -66,6 +67,15 @@ public final class JFluxHttpClient implements AutoCloseable {
     private JFluxHttpClient(InfluxHttpService service, ApiResponseConverter responseConverter) {
         this.service = service;
         this.responseConverter = responseConverter;
+    }
+
+    /**
+     * Gets the URL of the InfluxDB instance this client is pointed to.
+     *
+     * @return the InfluxDB host URL
+     */
+    public String getHostUrl() {
+        return hostUrl;
     }
 
     /**
@@ -280,7 +290,9 @@ public final class JFluxHttpClient implements AutoCloseable {
                     .baseUrl(host)
                     .build();
             InfluxHttpService service = retrofit.create(InfluxHttpService.class);
-            return new JFluxHttpClient(service, new ApiResponseConverter());
+            JFluxHttpClient client = new JFluxHttpClient(service, new ApiResponseConverter());
+            client.hostUrl = host;
+            return client;
         }
     }
 }
