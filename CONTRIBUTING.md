@@ -38,6 +38,7 @@ The project follows [Semantic Versioning](https://semver.org/).
 1. Pick an issue to work on, put it in progress and assign it to yourself
 1. Create a branch for your changes (see [Branching](#Branching) above)
 1. Implement your changes
+1. Make sure all tests and validations pass by running `mvn clean verify`
 1. Don't forget to update the `README` if necessary
 1. Update the version as required (see [Versioning](#Versioning) above)
 1. Create a pull request
