@@ -1,9 +1,13 @@
 package com.nickrammos.jflux;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
+import com.nickrammos.jflux.domain.Measurement;
+import com.nickrammos.jflux.domain.Point;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +46,29 @@ public final class JFluxClient implements AutoCloseable {
         }
     }
 
+    /**
+     * Gets the existing databases.
+     *
+     * @return the existing databases, should always contain at least the internal one
+     */
+    public List<String> getDatabases() {
+        Measurement queryResult = callApi(() -> httpClient.query("SHOW DATABASES"));
+        List<String> databases = new ArrayList<>();
+        for (Point point : queryResult.getPoints()) {
+            databases.addAll(point.getTags().values());
+        }
+        LOGGER.debug("Found databases: {}", databases);
+        return databases;
+    }
+
+    private <T> T callApi(IOThrowingSupplier<T> apiMethod) {
+        try {
+            return apiMethod.get();
+        } catch (IOException e) {
+            throw new IllegalStateException("Connection to InfluxDB lost", e);
+        }
+    }
+
     @Override
     public void close() throws Exception {
         httpClient.close();
@@ -74,5 +101,15 @@ public final class JFluxClient implements AutoCloseable {
             JFluxHttpClient httpClient = new JFluxHttpClient.Builder(host).build();
             return new JFluxClient(httpClient);
         }
+    }
+
+    /**
+     * Convenience interface for suppliers that throw IOExceptions.
+     *
+     * @param <T> type of the return value
+     */
+    private interface IOThrowingSupplier<T> {
+
+        T get() throws IOException;
     }
 }
