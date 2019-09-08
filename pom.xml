@@ -169,8 +169,8 @@
                 <version>${maven-checkstyle-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
+                        <id>verify</id>
+                        <phase>verify</phase>
                         <configuration>
                             <configLocation>
                                 ${maven-checkstyle-plugin.configLocation}
