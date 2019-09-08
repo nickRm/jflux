@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class JFluxClient implements AutoCloseable {
 
+    static final String INTERNAL_DATABASE_NAME = "_internal";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JFluxClient.class);
 
     private final JFluxHttpClient httpClient;
@@ -96,6 +98,32 @@ public final class JFluxClient implements AutoCloseable {
 
         callApi(() -> httpClient.execute("CREATE DATABASE \"" + databaseName + "\""));
         LOGGER.info("Created database '{}'", databaseName);
+    }
+
+    /**
+     * Drops the specified database.
+     *
+     * @param databaseName the database to drop, not {@code null}
+     *
+     * @throws NullPointerException     if {@code databaseName} is {@code null}
+     * @throws IllegalArgumentException if the database does not exist
+     * @throws IllegalArgumentException if trying to drop the internal InfluxDB database
+     */
+    public void dropDatabase(String databaseName) {
+        if (databaseName == null) {
+            throw new NullPointerException("Database cannot be null");
+        }
+
+        if (INTERNAL_DATABASE_NAME.equals(databaseName)) {
+            throw new IllegalArgumentException("Cannot drop internal database");
+        }
+
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+
+        callApi(() -> httpClient.execute("DROP DATABASE \"" + databaseName + "\""));
+        LOGGER.info("Dropped database '{}'", databaseName);
     }
 
     private void callApi(IOThrowingRunnable apiMethod) {

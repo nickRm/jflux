@@ -51,6 +51,11 @@ public class JFluxClientTest {
         jFluxClient.createDatabase(null);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void dropDatabase_shouldThrowException_ifNameIsNull() {
+        jFluxClient.dropDatabase(null);
+    }
+
     @Test
     public void close_shouldAlsoCloseHttpClient() throws Exception {
         // Given/When

@@ -26,13 +26,13 @@ public class JFluxClientIT {
         List<String> databases = jFluxClient.getDatabases();
 
         // Then
-        assertThat(databases).contains("_internal");
+        assertThat(databases).contains(JFluxClient.INTERNAL_DATABASE_NAME);
     }
 
     @Test
     public void databaseExists_shouldReturnTrue_forExistingDatabase() {
         // Given/When
-        boolean exists = jFluxClient.databaseExists("_internal");
+        boolean exists = jFluxClient.databaseExists(JFluxClient.INTERNAL_DATABASE_NAME);
 
         // Then
         assertThat(exists).isTrue();
@@ -48,19 +48,28 @@ public class JFluxClientIT {
     }
 
     @Test
-    public void testCreateDatabase() {
-        // Given
+    public void testCreateAndDropDatabase() {
         String databaseName = "test_db_" + System.currentTimeMillis();
 
-        // When
         jFluxClient.createDatabase(databaseName);
-
-        // Then
         assertThat(jFluxClient.databaseExists(databaseName)).isTrue();
+
+        jFluxClient.dropDatabase(databaseName);
+        assertThat(jFluxClient.databaseExists(databaseName)).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
-        jFluxClient.createDatabase("_internal");
+        jFluxClient.createDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
+        jFluxClient.dropDatabase("non_existent_db");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
+        jFluxClient.dropDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
     }
 }
