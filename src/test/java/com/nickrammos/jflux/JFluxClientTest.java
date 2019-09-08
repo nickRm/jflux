@@ -41,6 +41,11 @@ public class JFluxClientTest {
         // Expect exception.
     }
 
+    @Test(expected = NullPointerException.class)
+    public void databaseExists_shouldThrowException_ifNameIsNull() {
+        jFluxClient.databaseExists(null);
+    }
+
     @Test
     public void close_shouldAlsoCloseHttpClient() throws Exception {
         // Given/When

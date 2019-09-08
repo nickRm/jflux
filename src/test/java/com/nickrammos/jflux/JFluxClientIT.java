@@ -28,4 +28,22 @@ public class JFluxClientIT {
         // Then
         assertThat(databases).contains("_internal");
     }
+
+    @Test
+    public void databaseExists_shouldReturnTrue_forExistingDatabase() {
+        // Given/When
+        boolean exists = jFluxClient.databaseExists("_internal");
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    public void databaseExists_shouldReturnTrue_forNonExistentDatabase() {
+        // Given/When
+        boolean exists = jFluxClient.databaseExists("non_existent_db");
+
+        // Then
+        assertThat(exists).isFalse();
+    }
 }

@@ -61,6 +61,22 @@ public final class JFluxClient implements AutoCloseable {
         return databases;
     }
 
+    /**
+     * Gets a value indicating whether the specified database exists.
+     *
+     * @param databaseName the database name to check, not {@code null}
+     *
+     * @return {@code true} if the database exists, {@code false} otherwise
+     *
+     * @throws NullPointerException if {@code databaseName} is {@code null}
+     */
+    public boolean databaseExists(String databaseName) {
+        if (databaseName == null) {
+            throw new NullPointerException("Database name cannot be null");
+        }
+        return getDatabases().contains(databaseName);
+    }
+
     private <T> T callApi(IOThrowingSupplier<T> apiMethod) {
         try {
             return apiMethod.get();
