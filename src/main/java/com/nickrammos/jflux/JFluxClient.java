@@ -77,6 +77,35 @@ public final class JFluxClient implements AutoCloseable {
         return getDatabases().contains(databaseName);
     }
 
+    /**
+     * Creates a new database with the specified name.
+     *
+     * @param databaseName the database to create, not {@code null}
+     *
+     * @throws NullPointerException     if {@code databaseName} is {@code null}
+     * @throws IllegalArgumentException if the database already exists.
+     */
+    public void createDatabase(String databaseName) {
+        if (databaseName == null) {
+            throw new NullPointerException("Database name cannot be null");
+        }
+
+        if (databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Database " + databaseName + " already exists");
+        }
+
+        callApi(() -> httpClient.execute("CREATE DATABASE \"" + databaseName + "\""));
+        LOGGER.info("Created database '{}'", databaseName);
+    }
+
+    private void callApi(IOThrowingRunnable apiMethod) {
+        try {
+            apiMethod.run();
+        } catch (IOException e) {
+            throw new IllegalStateException("Connection to InfluxDB lost", e);
+        }
+    }
+
     private <T> T callApi(IOThrowingSupplier<T> apiMethod) {
         try {
             return apiMethod.get();
@@ -117,6 +146,14 @@ public final class JFluxClient implements AutoCloseable {
             JFluxHttpClient httpClient = new JFluxHttpClient.Builder(host).build();
             return new JFluxClient(httpClient);
         }
+    }
+
+    /**
+     * Convenience interface for runnables that throw IOExceptions.
+     */
+    private interface IOThrowingRunnable {
+
+        void run() throws IOException;
     }
 
     /**

@@ -46,4 +46,21 @@ public class JFluxClientIT {
         // Then
         assertThat(exists).isFalse();
     }
+
+    @Test
+    public void testCreateDatabase() {
+        // Given
+        String databaseName = "test_db_" + System.currentTimeMillis();
+
+        // When
+        jFluxClient.createDatabase(databaseName);
+
+        // Then
+        assertThat(jFluxClient.databaseExists(databaseName)).isTrue();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
+        jFluxClient.createDatabase("_internal");
+    }
 }
