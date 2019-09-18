@@ -3,11 +3,13 @@ package com.nickrammos.jflux;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
+import com.nickrammos.jflux.domain.RetentionPolicy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,6 +126,32 @@ public final class JFluxClient implements AutoCloseable {
 
         callApi(() -> httpClient.execute("DROP DATABASE \"" + databaseName + "\""));
         LOGGER.info("Dropped database '{}'", databaseName);
+    }
+
+    /**
+     * Gets all the retention policies defined on the specified database.
+     *
+     * @param databaseName name of the database to check, not {@code null}
+     *
+     * @return the database's retention policies
+     *
+     * @throws NullPointerException if {@code databaseName} is {@code null}
+     */
+    public List<RetentionPolicy> getRetentionPolicies(String databaseName) {
+        if (databaseName == null) {
+            throw new NullPointerException("Database name cannot be null");
+        }
+
+        String query = "SHOW RETENTION POLICIES ON \"" + databaseName + "\"";
+        Measurement queryResult = callApi(() -> httpClient.query(query));
+
+        RetentionPolicyConverter converter = new RetentionPolicyConverter();
+        List<RetentionPolicy> retentionPolicies = queryResult.getPoints()
+                .stream()
+                .map(converter::parsePoint)
+                .collect(Collectors.toList());
+        LOGGER.debug("Found retention policies {} on {}", retentionPolicies, databaseName);
+        return retentionPolicies;
     }
 
     private void callApi(IOThrowingRunnable apiMethod) {

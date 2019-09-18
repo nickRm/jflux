@@ -3,6 +3,8 @@ package com.nickrammos.jflux;
 import java.io.IOException;
 import java.util.List;
 
+import com.nickrammos.jflux.domain.RetentionPolicy;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,5 +73,12 @@ public class JFluxClientIT {
     @Test(expected = IllegalArgumentException.class)
     public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
         jFluxClient.dropDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
+    }
+
+    @Test
+    public void getRetentionPolicies_shouldShowResults() {
+        List<RetentionPolicy> retentionPolicies =
+                jFluxClient.getRetentionPolicies(JFluxClient.INTERNAL_DATABASE_NAME);
+        assertThat(retentionPolicies).isNotEmpty();
     }
 }

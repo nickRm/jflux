@@ -56,6 +56,11 @@ public class JFluxClientTest {
         jFluxClient.dropDatabase(null);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void getRetentionPolicies_shouldThrowException_ifDatabaseNameIsNull() {
+        jFluxClient.getRetentionPolicies(null);
+    }
+
     @Test
     public void close_shouldAlsoCloseHttpClient() throws Exception {
         // Given/When
