@@ -154,6 +154,35 @@ public final class JFluxClient implements AutoCloseable {
         return retentionPolicies;
     }
 
+    /**
+     * Returns a value indicating whether the specified retention policy exists on the specified
+     * database.
+     *
+     * @param retentionPolicyName the retention policy to check
+     * @param databaseName        the database to check
+     *
+     * @return {@code true} if the retention policy exists, {@code false} otherwise
+     *
+     * @throws NullPointerException     if the retention policy or database names are null
+     * @throws IllegalArgumentException if the database does not exist
+     */
+    public boolean retentionPolicyExists(String retentionPolicyName, String databaseName) {
+        if (retentionPolicyName == null) {
+            throw new NullPointerException("Retention policy name cannot be null");
+        }
+
+        if (databaseName == null) {
+            throw new NullPointerException("Database name cannot be null");
+        }
+
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+
+        return getRetentionPolicies(databaseName).stream()
+                .anyMatch(rp -> rp.getName().equals(retentionPolicyName));
+    }
+
     private void callApi(IOThrowingRunnable apiMethod) {
         try {
             apiMethod.run();

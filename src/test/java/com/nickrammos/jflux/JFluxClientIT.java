@@ -81,4 +81,25 @@ public class JFluxClientIT {
                 jFluxClient.getRetentionPolicies(JFluxClient.INTERNAL_DATABASE_NAME);
         assertThat(retentionPolicies).isNotEmpty();
     }
+
+    @Test
+    public void retentionPolicyExists_shouldReturnTrue_ifRetentionPolicyExists() {
+        boolean exists =
+                jFluxClient.retentionPolicyExists("monitor", JFluxClient.INTERNAL_DATABASE_NAME);
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    public void retentionPolicyExists_shouldReturnFalse_ifRetentionPolicyDoesNotExist() {
+        boolean exists =
+                jFluxClient.retentionPolicyExists("non_existent_rp",
+                        JFluxClient.INTERNAL_DATABASE_NAME);
+        assertThat(exists).isFalse();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void retentionPolicyExists_shouldThrowException_ifDatabaseDoesNotExist() {
+        boolean exists = jFluxClient.retentionPolicyExists("autogen", "non_existent_db");
+        assertThat(exists).isFalse();
+    }
 }

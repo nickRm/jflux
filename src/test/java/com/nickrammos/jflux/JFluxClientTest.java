@@ -61,6 +61,16 @@ public class JFluxClientTest {
         jFluxClient.getRetentionPolicies(null);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void retentionPolicyExists_shouldThrowException_ifRetentionPolicyNameIsNull() {
+        jFluxClient.retentionPolicyExists(null, "some_db");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void retentionPolicyExists_shouldThrowException_ifDatabaseNameIsNull() {
+        jFluxClient.retentionPolicyExists("some_rp", null);
+    }
+
     @Test
     public void close_shouldAlsoCloseHttpClient() throws Exception {
         // Given/When
