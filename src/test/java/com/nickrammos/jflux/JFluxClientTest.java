@@ -1,9 +1,11 @@
 package com.nickrammos.jflux;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
+import com.nickrammos.jflux.domain.RetentionPolicy;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -69,6 +71,18 @@ public class JFluxClientTest {
     @Test(expected = NullPointerException.class)
     public void retentionPolicyExists_shouldThrowException_ifDatabaseNameIsNull() {
         jFluxClient.retentionPolicyExists("some_rp", null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createRetentionPolicy_shouldThrowException_ifRetentionPolicyIsNull() {
+        jFluxClient.createRetentionPolicy(null, "some_db");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createRetentionPolicy_shouldThrowException_ifDatabaseIsNull() {
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("test_rp", Duration.ZERO).build();
+        jFluxClient.createRetentionPolicy(retentionPolicy, null);
     }
 
     @Test

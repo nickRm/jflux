@@ -36,4 +36,42 @@ final class DurationConverter {
 
         return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
     }
+
+    /**
+     * Converts a duration to a literal which can be used in queries.
+     * <p>
+     * Currently only hours, minutes, and seconds are supported in the output, meaning that other
+     * units are converted to one of the aforementioned. For example, the input
+     * {@code Duration.ofDays(1)} is converted to the literal {@code 24h}. Note that, as seen in the
+     * previous example, if values for any units are zero then they can be omitted from the
+     * generated literal. If all values are zero ({@code Duration.ZERO}) then the output is
+     * {@code 0s}.
+     *
+     * @param duration the duration to convert
+     *
+     * @return the duration literal
+     *
+     * @throws NullPointerException     if {@code duration} is {@code null}
+     * @throws IllegalArgumentException if {@code duration} is negative
+     */
+    String toLiteral(Duration duration) {
+        if (duration == null) {
+            throw new NullPointerException("Duration cannot be null");
+        }
+
+        if (duration.isNegative()) {
+            throw new IllegalArgumentException("Duration cannot be negative");
+        }
+
+        if (duration.isZero()) {
+            return "0s";
+        }
+
+        long hours = duration.toHours();
+        long minutes = duration.minusHours(hours).toMinutes();
+        long seconds = duration.minusHours(hours).minusMinutes(minutes).getSeconds();
+
+        return (hours > 0 ? hours + "h" : "") + (minutes > 0 ? minutes + "m" : "")
+                + (seconds > 0 ? seconds + "s" : "");
+    }
 }

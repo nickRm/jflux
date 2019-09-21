@@ -1,6 +1,7 @@
 package com.nickrammos.jflux;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
 import com.nickrammos.jflux.domain.RetentionPolicy;
@@ -101,5 +102,30 @@ public class JFluxClientIT {
     public void retentionPolicyExists_shouldThrowException_ifDatabaseDoesNotExist() {
         boolean exists = jFluxClient.retentionPolicyExists("autogen", "non_existent_db");
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    public void testCreateRetentionPolicy() {
+        String retentionPolicyName = "test_rp_" + System.currentTimeMillis();
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ofHours(1)).build();
+
+        jFluxClient.createRetentionPolicy(retentionPolicy, JFluxClient.INTERNAL_DATABASE_NAME);
+        assertThat(jFluxClient.retentionPolicyExists(retentionPolicyName,
+                JFluxClient.INTERNAL_DATABASE_NAME)).isTrue();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("test_rp", Duration.ZERO).build();
+        jFluxClient.createRetentionPolicy(retentionPolicy, "non_existent_db");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createRetentionPolicy_shouldThrowException_ifRetentionPolicyAlreadyExists() {
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("monitor", Duration.ZERO).build();
+        jFluxClient.createRetentionPolicy(retentionPolicy, JFluxClient.INTERNAL_DATABASE_NAME);
     }
 }

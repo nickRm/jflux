@@ -183,6 +183,44 @@ public final class JFluxClient implements AutoCloseable {
                 .anyMatch(rp -> rp.getName().equals(retentionPolicyName));
     }
 
+    /**
+     * Creates a new retention policy on the specified database.
+     *
+     * @param retentionPolicy the retention policy to create
+     * @param databaseName    the database to create the retention policy on
+     *
+     * @throws NullPointerException     if {@code retentionPolicy} or {@code databaseName} is {@code
+     *                                  null}
+     * @throws IllegalArgumentException if the database does not exist
+     * @throws IllegalArgumentException if the retention policy already exists
+     */
+    public void createRetentionPolicy(RetentionPolicy retentionPolicy, String databaseName) {
+        if (retentionPolicy == null) {
+            throw new NullPointerException("Retention policy cannot be null");
+        }
+
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+
+        if (retentionPolicyExists(retentionPolicy.getName(), databaseName)) {
+            throw new IllegalArgumentException(
+                    "Retention policy " + retentionPolicy.getName() + " already exists on "
+                            + databaseName);
+        }
+
+        DurationConverter durationConverter = new DurationConverter();
+        String statement = "CREATE RETENTION POLICY \"" + retentionPolicy.getName() + '"'
+                + " ON \"" + databaseName + '"'
+                + " DURATION " + durationConverter.toLiteral(retentionPolicy.getDuration())
+                + " REPLICATION " + retentionPolicy.getReplication()
+                + " SHARD DURATION " + durationConverter.toLiteral(
+                retentionPolicy.getShardDuration())
+                + (retentionPolicy.isDefault() ? " DEFAULT" : "");
+        callApi(() -> httpClient.execute(statement));
+        LOGGER.info("Created retention policy {} on '{}'", retentionPolicy, databaseName);
+    }
+
     private void callApi(IOThrowingRunnable apiMethod) {
         try {
             apiMethod.run();
