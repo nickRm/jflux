@@ -221,6 +221,27 @@ public final class JFluxClient implements AutoCloseable {
         LOGGER.info("Created retention policy {} on '{}'", retentionPolicy, databaseName);
     }
 
+    /**
+     * Drops the specified retention policy.
+     *
+     * @param retentionPolicyName the retention policy to drop
+     * @param databaseName        the database the retention policy is defined on
+     *
+     * @throws NullPointerException     if {@code retentionPolicy} or {@code databaseName} are
+     *                                  {@code null}
+     * @throws IllegalArgumentException if either the retention policy or the database do not exist
+     */
+    public void dropRetentionPolicy(String retentionPolicyName, String databaseName) {
+        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
+            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+        }
+
+        String statement =
+                "DROP RETENTION POLICY \"" + retentionPolicyName + "\" ON \"" + databaseName + '"';
+        callApi(() -> httpClient.execute(statement));
+        LOGGER.info("Dropped retention policy '{}' on '{}'", retentionPolicyName, databaseName);
+    }
+
     private void callApi(IOThrowingRunnable apiMethod) {
         try {
             apiMethod.run();
