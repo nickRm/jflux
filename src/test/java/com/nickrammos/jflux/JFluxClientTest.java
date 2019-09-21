@@ -101,6 +101,25 @@ public class JFluxClientTest {
     }
 
     @Test(expected = NullPointerException.class)
+    public void alterRetentionPolicy_shouldThrowException_ifRetentionPolicyNameIsNull() {
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+        jFluxClient.alterRetentionPolicy(null, "some_db", newDefinition);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void alterRetentionPolicy_shouldThrowException_ifDatabaseNameIsNull() {
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+        jFluxClient.alterRetentionPolicy("some_rp", null, newDefinition);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void alterRetentionPolicy_shouldThrowException_ifNewDefinitionIsNull() {
+        jFluxClient.alterRetentionPolicy("some_rp", "some_db", null);
+    }
+
+    @Test(expected = NullPointerException.class)
     public void dropRetentionPolicy_shouldThrowException_ifRetentionPolicyNameIsNull() {
         jFluxClient.dropRetentionPolicy(null, "some_db");
     }

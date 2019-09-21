@@ -7,13 +7,32 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * A retention policy specifies how long data is kept for.
+ * <p>
+ * Instance of this class are immutable.
  */
 public final class RetentionPolicy {
 
     private final String name;
+
+    /**
+     * The duration of this retention policy, cannot be {@code null} or negative. A duration of
+     * {@link Duration#ZERO} implies an infinite duration.
+     */
     private final Duration duration;
+
+    /**
+     * The replication factor for this retention policy, cannot be negative. Replication has no
+     * meaning in single-node setups.
+     */
     private final int replication;
+
+    /**
+     * The shard group duration of this retention policy, cannot be {@code null} or negative. A
+     * shard duration of {@link Duration#ZERO} means that the default shard duration will be used
+     * (the default value is based on the value of {@link #duration}).
+     */
     private final Duration shardDuration;
+
     private boolean isDefault;
 
     /**
@@ -57,9 +76,7 @@ public final class RetentionPolicy {
     }
 
     /**
-     * Gets the duration of this retention policy.
-     * <p>
-     * A value of {@link Duration#ZERO} indicates an infinite duration.
+     * Gets the {@link #duration} of this retention policy.
      *
      * @return the retention policy duration
      */
@@ -68,7 +85,18 @@ public final class RetentionPolicy {
     }
 
     /**
-     * Gets the replication factor of this retention policy.
+     * Creates a copy of this instance with the specified {@link #duration}.
+     *
+     * @param duration the new duration value
+     *
+     * @return a new instance with the new value
+     */
+    public RetentionPolicy withDuration(Duration duration) {
+        return new Builder(this).duration(duration).build();
+    }
+
+    /**
+     * Gets the {@link #replication replication factor} of this retention policy.
      *
      * @return the retention policy replication
      */
@@ -77,10 +105,18 @@ public final class RetentionPolicy {
     }
 
     /**
-     * Gets the shard duration of this retention policy.
-     * <p>
-     * A value of {@link Duration#ZERO} indicates a default shard duration based on the value of the
-     * retention policy's duration.
+     * Creates a copy of this instance with the specified {@link #replication replication factor}.
+     *
+     * @param replication the new replication value
+     *
+     * @return a new instance with the new value
+     */
+    public RetentionPolicy withReplication(int replication) {
+        return new Builder(this).replication(replication).build();
+    }
+
+    /**
+     * Gets the {@link #shardDuration shard duration} of this retention policy.
      *
      * @return the shard duration
      */
@@ -89,12 +125,35 @@ public final class RetentionPolicy {
     }
 
     /**
-     * Gets a value indiciating whether this retention policy is the default.
+     * Creates a copy of this instance with a new {@link #shardDuration shard duration}.
+     *
+     * @param shardDuration the new shard duration value
+     *
+     * @return a new instance with the new value
+     */
+    public RetentionPolicy withShardDuration(Duration shardDuration) {
+        return new Builder(this).shardDuration(shardDuration).build();
+    }
+
+    /**
+     * Gets a value indicating whether this retention policy is the default.
      *
      * @return {@code true} if this is the default, {@code false} otherwise
      */
     public boolean isDefault() {
         return isDefault;
+    }
+
+    /**
+     * Creates a copy of this instance with a new value for {@link #isDefault}.
+     *
+     * @param isDefault {@code true} if this retention policy is the default, {@code false}
+     *                  otherwise
+     *
+     * @return a new instance with the new value
+     */
+    public RetentionPolicy asDefault(boolean isDefault) {
+        return new Builder(this).isDefault(isDefault).build();
     }
 
     @Override
@@ -136,10 +195,14 @@ public final class RetentionPolicy {
 
         /**
          * Initializes a new instance setting the required fields.
+         * <p>
+         * The fields specified in this constructor are mandatory, the rest are optional and if not
+         * set will fall back to default values.
          *
          * @param name     name of the retention policy
-         * @param duration duration of the retention policy, {@link Duration#ZERO} is infinite
-         *                 duration
+         * @param duration duration of the retention policy
+         *
+         * @see RetentionPolicy#duration
          */
         public Builder(String name, Duration duration) {
             this.name = name;
@@ -149,11 +212,28 @@ public final class RetentionPolicy {
             isDefault = false;
         }
 
+        private Builder(RetentionPolicy retentionPolicy) {
+            this.name = retentionPolicy.name;
+            this.duration = retentionPolicy.duration;
+            this.replication = retentionPolicy.replication;
+            this.shardDuration = retentionPolicy.shardDuration;
+            this.isDefault = retentionPolicy.isDefault;
+        }
+
         /**
-         * Sets the replication for the retention policy.
-         * <p>
-         * If not set, a default value of 1 will be used. This value has no meaning in single-node
-         * clusters.
+         * Sets the {@link RetentionPolicy#duration} for the retention policy.
+         *
+         * @param duration the retention policy duration
+         *
+         * @return this builder
+         */
+        public Builder duration(Duration duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        /**
+         * Sets the {@link RetentionPolicy#replication replication factor} for the retention policy.
          *
          * @param replication number of replicas, must be positive
          *
@@ -165,10 +245,7 @@ public final class RetentionPolicy {
         }
 
         /**
-         * Sets the shard duration for the retention policy.
-         * <p>
-         * If not set or if set to {@link Duration#ZERO}, this defaults to a default value based on
-         * the retention policy duration.
+         * Sets the {@link RetentionPolicy#shardDuration shard duration} for the retention policy.
          *
          * @param shardDuration the shard duration to use, must not be {@code null} or negative
          *

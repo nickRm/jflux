@@ -237,6 +237,47 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
+     * Alters the specified retention policy.
+     * <p>
+     * Note that the name of the retention policy cannot be altered and thus the original name will
+     * always be kept, even if the new definition specifies a different one.
+     *
+     * @param retentionPolicyName the retention policy to alter
+     * @param databaseName        the database the retention policy is defined on
+     * @param newDefinition       the new definition for the retention policy
+     *
+     * @throws NullPointerException     if any of the arguments are {@code null}
+     * @throws IllegalArgumentException if the database does not exist
+     * @throws IllegalArgumentException if the retention policy does not exist
+     */
+    public void alterRetentionPolicy(String retentionPolicyName, String databaseName,
+            RetentionPolicy newDefinition) {
+        if (newDefinition == null) {
+            throw new NullPointerException("Retention policy definition cannot be null");
+        }
+
+        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
+            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+        }
+
+        if (!retentionPolicyName.equals(newDefinition.getName())) {
+            LOGGER.warn("Retention policy name cannot be altered, will remain '{}'",
+                    retentionPolicyName);
+        }
+
+        DurationConverter durationConverter = new DurationConverter();
+        String statement = "ALTER RETENTION POLICY \"" + retentionPolicyName + '"'
+                + " ON \"" + databaseName + '"'
+                + " DURATION " + durationConverter.toLiteral(newDefinition.getDuration())
+                + " REPLICATION " + newDefinition.getReplication()
+                + " SHARD DURATION " + durationConverter.toLiteral(
+                newDefinition.getShardDuration())
+                + (newDefinition.isDefault() ? " DEFAULT" : "");
+        callApi(() -> httpClient.execute(statement));
+        LOGGER.info("Updated '{}'.'{}' to {}", databaseName, retentionPolicyName, newDefinition);
+    }
+
+    /**
      * Drops the specified retention policy.
      *
      * @param retentionPolicyName the retention policy to drop

@@ -124,15 +124,25 @@ public class JFluxClientIT {
     }
 
     @Test
-    public void testCreateAndDropRetentionPolicy() {
+    public void testCreateAlterDropRetentionPolicy() {
         String retentionPolicyName = "test_rp_" + System.currentTimeMillis();
         String databaseName = JFluxClient.INTERNAL_DATABASE_NAME;
+        Duration duration = Duration.ofHours(1);
         RetentionPolicy retentionPolicy =
-                new RetentionPolicy.Builder(retentionPolicyName, Duration.ofHours(1)).build();
+                new RetentionPolicy.Builder(retentionPolicyName, duration).build();
 
+        // Create
         jFluxClient.createRetentionPolicy(retentionPolicy, databaseName);
         assertThat(jFluxClient.retentionPolicyExists(retentionPolicyName, databaseName)).isTrue();
 
+        // Alter
+        Duration newDuration = duration.plusHours(1);
+        RetentionPolicy newDefinition = retentionPolicy.withDuration(newDuration);
+        jFluxClient.alterRetentionPolicy(retentionPolicyName, databaseName, newDefinition);
+        RetentionPolicy actual = jFluxClient.getRetentionPolicy(retentionPolicyName, databaseName);
+        assertThat(actual.getDuration()).isEqualTo(newDuration);
+
+        // Drop
         jFluxClient.dropRetentionPolicy(retentionPolicyName, databaseName);
         assertThat(jFluxClient.retentionPolicyExists(retentionPolicyName, databaseName)).isFalse();
     }
@@ -149,6 +159,21 @@ public class JFluxClientIT {
         RetentionPolicy retentionPolicy =
                 new RetentionPolicy.Builder("monitor", Duration.ZERO).build();
         jFluxClient.createRetentionPolicy(retentionPolicy, JFluxClient.INTERNAL_DATABASE_NAME);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void alterRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
+        jFluxClient.alterRetentionPolicy("non_existent_rp", JFluxClient.INTERNAL_DATABASE_NAME,
+                newDefinition);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void alterRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
+        jFluxClient.alterRetentionPolicy("autogen", "non_existent_db", newDefinition);
     }
 
     @Test(expected = IllegalArgumentException.class)

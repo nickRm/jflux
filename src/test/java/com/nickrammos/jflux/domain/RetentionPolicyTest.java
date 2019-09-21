@@ -40,4 +40,33 @@ public class RetentionPolicyTest {
         new RetentionPolicy.Builder(VALID_RP_NAME, VALID_DURATION).shardDuration(
                 Duration.ofDays(-1)).build();
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void withDuration_shouldThrowException_ifNewValueIsNull() {
+        createValidInstance().withDuration(null);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void withDuration_shouldThrowException_ifNewValueIsNegative() {
+        createValidInstance().withDuration(Duration.ofMillis(-1));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void withReplication_shouldThrowException_ifNewValueIsNegative() {
+        createValidInstance().withReplication(-1);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void withShardDuration_shouldThrowException_ifNewValueIsNull() {
+        createValidInstance().withShardDuration(null);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void withShardDuration_shouldThrowException_ifNewValueIsNegative() {
+        createValidInstance().withShardDuration(Duration.ofMillis(-1));
+    }
+
+    private static RetentionPolicy createValidInstance() {
+        return new RetentionPolicy.Builder("some_name", Duration.ZERO).build();
+    }
 }
