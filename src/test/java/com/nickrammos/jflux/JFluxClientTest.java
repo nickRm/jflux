@@ -58,6 +58,11 @@ public class JFluxClientTest {
         jFluxClient.dropDatabase(null);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
+        jFluxClient.dropDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
+    }
+
     @Test(expected = NullPointerException.class)
     public void getRetentionPolicies_shouldThrowException_ifDatabaseNameIsNull() {
         jFluxClient.getRetentionPolicies(null);

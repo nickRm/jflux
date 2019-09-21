@@ -71,11 +71,6 @@ public class JFluxClientIT {
         jFluxClient.dropDatabase("non_existent_db");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
-        jFluxClient.dropDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
-    }
-
     @Test
     public void getRetentionPolicies_shouldShowResults() {
         List<RetentionPolicy> retentionPolicies =
