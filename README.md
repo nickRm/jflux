@@ -23,7 +23,7 @@ the communication with InfluxDB.
 Creating a database with `JFluxHttpClient` looks like this:
 
 ```java
-jfluxHttpClient.execut("CREATE DATABASE my_db");
+jfluxHttpClient.execute("CREATE DATABASE my_db");
 ```
 
 It is recommended that, if a certain functionality is missing from the `JFluxClient` class, a 
