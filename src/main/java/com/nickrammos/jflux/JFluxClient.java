@@ -135,11 +135,16 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @return the database's retention policies
      *
-     * @throws NullPointerException if {@code databaseName} is {@code null}
+     * @throws NullPointerException     if {@code databaseName} is {@code null}
+     * @throws IllegalArgumentException if the database does not exist
      */
     public List<RetentionPolicy> getRetentionPolicies(String databaseName) {
         if (databaseName == null) {
             throw new NullPointerException("Database name cannot be null");
+        }
+
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
         }
 
         String query = "SHOW RETENTION POLICIES ON \"" + databaseName + "\"";
@@ -150,8 +155,31 @@ public final class JFluxClient implements AutoCloseable {
                 .stream()
                 .map(converter::parsePoint)
                 .collect(Collectors.toList());
-        LOGGER.debug("Found retention policies {} on {}", retentionPolicies, databaseName);
+        LOGGER.debug("Found retention policies {} on '{}'", retentionPolicies, databaseName);
         return retentionPolicies;
+    }
+
+    /**
+     * Gets the definition of the specified retention policy.
+     *
+     * @param retentionPolicyName the retention policy to get
+     * @param databaseName        the database the retention policy is defined on
+     *
+     * @return the retention policy definition, or {@code null} if not found
+     *
+     * @throws NullPointerException     if {@code retentionPolicyName} or {@code databaseName} are
+     *                                  {@code null}
+     * @throws IllegalArgumentException if the database does not exist
+     */
+    public RetentionPolicy getRetentionPolicy(String retentionPolicyName, String databaseName) {
+        if (retentionPolicyName == null) {
+            throw new NullPointerException("Retention policy cannot be null");
+        }
+
+        return getRetentionPolicies(databaseName).stream()
+                .filter(rp -> rp.getName().equals(retentionPolicyName))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -167,20 +195,7 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if the database does not exist
      */
     public boolean retentionPolicyExists(String retentionPolicyName, String databaseName) {
-        if (retentionPolicyName == null) {
-            throw new NullPointerException("Retention policy name cannot be null");
-        }
-
-        if (databaseName == null) {
-            throw new NullPointerException("Database name cannot be null");
-        }
-
-        if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
-        }
-
-        return getRetentionPolicies(databaseName).stream()
-                .anyMatch(rp -> rp.getName().equals(retentionPolicyName));
+        return getRetentionPolicy(retentionPolicyName, databaseName) != null;
     }
 
     /**
