@@ -2,6 +2,8 @@ package com.nickrammos.jflux;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,7 @@ public final class JFluxClient implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JFluxClient.class);
 
     private final JFluxHttpClient httpClient;
+    private final LineProtocolConverter lineProtocolConverter;
 
     /**
      * Initializes a new instance, setting the HTTP client used to query the InfluxDB API.
@@ -48,6 +51,8 @@ public final class JFluxClient implements AutoCloseable {
         } catch (IOException e) {
             throw new IOException("Could not connect to InfluxDB instance", e);
         }
+
+        lineProtocolConverter = new LineProtocolConverter();
     }
 
     /**
@@ -296,6 +301,78 @@ public final class JFluxClient implements AutoCloseable {
                 "DROP RETENTION POLICY \"" + retentionPolicyName + "\" ON \"" + databaseName + '"';
         callApi(() -> httpClient.execute(statement));
         LOGGER.info("Dropped retention policy '{}' on '{}'", retentionPolicyName, databaseName);
+    }
+
+    /**
+     * Alias for {@link #write(String, String, Collection)} for a single point.
+     *
+     * @param databaseName    the database to write to, not {@code null}
+     * @param measurementName the measurement to write to, not {@code null}
+     * @param point           the point to write
+     *
+     * @throws IllegalArgumentException if the database does not exist
+     */
+    public void write(String databaseName, String measurementName, Point point) {
+        write(databaseName, measurementName, Collections.singleton(point));
+    }
+
+    /**
+     * Writes the specified points to InfluxDB, using the default retention policy.
+     *
+     * @param databaseName    the database to write to, not {@code null}
+     * @param measurementName the measurement to write to, not {@code null}
+     * @param points          the points to write
+     *
+     * @throws IllegalArgumentException if the database does not exist
+     */
+    public void write(String databaseName, String measurementName, Collection<Point> points) {
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+
+        lineProtocolConverter.toLineProtocol(measurementName, points)
+                .forEach(lineProtocol -> callApi(
+                        () -> httpClient.write(databaseName, lineProtocol)));
+    }
+
+    /**
+     * Alias for {@link #write(String, String, String, Collection)} for a single point.
+     *
+     * @param databaseName        the database to write to, not {@code null}
+     * @param measurementName     the measurement to write to, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     * @param point               the point to write
+     *
+     * @throws IllegalArgumentException if the database or retention poliocy does not exist
+     */
+    public void write(String databaseName, String measurementName, String retentionPolicyName,
+            Point point) {
+        write(databaseName, measurementName, retentionPolicyName, Collections.singleton(point));
+    }
+
+    /**
+     * Writes the specified points to InfluxDB.
+     *
+     * @param databaseName        the database to write to, not {@code null}
+     * @param measurementName     the measurement to write to, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     * @param points              the points to write
+     *
+     * @throws IllegalArgumentException if the database or retention poliocy does not exist
+     */
+    public void write(String databaseName, String measurementName, String retentionPolicyName,
+            Collection<Point> points) {
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+
+        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
+            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+        }
+
+        lineProtocolConverter.toLineProtocol(measurementName, points)
+                .forEach(lineProtocol -> callApi(
+                        () -> httpClient.write(databaseName, retentionPolicyName, lineProtocol)));
     }
 
     private void callApi(IOThrowingRunnable apiMethod) {

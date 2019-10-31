@@ -5,6 +5,7 @@ import java.time.Duration;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
+import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 
 import org.junit.Before;
@@ -127,6 +128,11 @@ public class JFluxClientTest {
     @Test(expected = NullPointerException.class)
     public void dropRetentionPolicy_shouldThrowException_ifDatabaseNameIsNull() {
         jFluxClient.dropRetentionPolicy("some_rp", null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void write_shouldThrowException_ifDatabaseNameIsNull() {
+        jFluxClient.write(null, "some_measurement", new Point.Builder().build());
     }
 
     @Test
