@@ -1,70 +1,73 @@
 package com.nickrammos.jflux;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collections;
 
+import com.nickrammos.jflux.domain.Point;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class JFluxClientIT {
 
     // InfluxDB needs to be running locally for these tests.
     private static final String INFLUX_DB_URL = "http://localhost:8086";
+    private static final String DB_NAME =
+            JFluxClientIT.class.getSimpleName() + "_" + System.currentTimeMillis();
 
     private JFluxClient jFluxClient;
 
     @Before
     public void setup() throws IOException {
         jFluxClient = new JFluxClient.Builder(INFLUX_DB_URL).build();
+        jFluxClient.createDatabase(DB_NAME);
+    }
+
+    @After
+    public void tearDown() {
+        jFluxClient.dropDatabase(DB_NAME);
     }
 
     @Test
-    public void showDatabases_showsResults() {
-        // Given/When
-        List<String> databases = jFluxClient.getDatabases();
+    public void write_shouldWritePoints() {
+        // Given
+        Point point = new Point.Builder().fields(Collections.singletonMap("some_field", 1))
+                .tags(Collections.singletonMap("some_tag", "tag value"))
+                .build();
+
+        // When
+        jFluxClient.write(DB_NAME, "some_measurement", point);
 
         // Then
-        assertThat(databases).contains(JFluxClient.INTERNAL_DATABASE_NAME);
-    }
-
-    @Test
-    public void databaseExists_shouldReturnTrue_forExistingDatabase() {
-        // Given/When
-        boolean exists = jFluxClient.databaseExists(JFluxClient.INTERNAL_DATABASE_NAME);
-
-        // Then
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    public void databaseExists_shouldReturnTrue_forNonExistentDatabase() {
-        // Given/When
-        boolean exists = jFluxClient.databaseExists("non_existent_db");
-
-        // Then
-        assertThat(exists).isFalse();
-    }
-
-    @Test
-    public void testCreateAndDropDatabase() {
-        String databaseName = "test_db_" + System.currentTimeMillis();
-
-        jFluxClient.createDatabase(databaseName);
-        assertThat(jFluxClient.databaseExists(databaseName)).isTrue();
-
-        jFluxClient.dropDatabase(databaseName);
-        assertThat(jFluxClient.databaseExists(databaseName)).isFalse();
+        // No exception should be thrown.
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
-        jFluxClient.createDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
+    public void write_shouldThrowException_ifDatabaseDoesNotExist() {
+        // Given
+        Point point = new Point.Builder().fields(Collections.singletonMap("some_field", 1))
+                .tags(Collections.singletonMap("some_tag", "tag value"))
+                .build();
+
+        // When
+        jFluxClient.write("non_existent_db", "some_measurement", point);
+
+        // Then
+        // Exception should be thrown.
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
-        jFluxClient.dropDatabase("non_existent_db");
+    public void write_shouldThrowException_ifRetentionPolicyDoesNotExist() {
+        // Given
+        Point point = new Point.Builder().fields(Collections.singletonMap("some_field", 1))
+                .tags(Collections.singletonMap("some_tag", "tag value"))
+                .build();
+
+        // When
+        jFluxClient.write(DB_NAME, "some_measurement", "non_existent_rp", point);
+
+        // Then
+        // Exception should be thrown.
     }
 }
