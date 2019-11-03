@@ -1,33 +1,11 @@
 package com.nickrammos.jflux;
 
-import java.io.IOException;
-
 import com.nickrammos.jflux.annotation.Field;
 import com.nickrammos.jflux.annotation.Tag;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-public class JFluxClientAnnotationIT {
-
-    // InfluxDB needs to be running locally for these tests.
-    private static final String INFLUX_DB_URL = "http://localhost:8086";
-    private static final String DB_NAME =
-            JFluxClientAnnotationIT.class.getSimpleName() + "_" + System.currentTimeMillis();
-
-    private JFluxClient jFluxClient;
-
-    @Before
-    public void setup() throws IOException {
-        jFluxClient = new JFluxClient.Builder(INFLUX_DB_URL).build();
-        jFluxClient.createDatabase(DB_NAME);
-    }
-
-    @After
-    public void tearDown() {
-        jFluxClient.dropDatabase(DB_NAME);
-    }
+public class JFluxClientAnnotationIT extends AbstractJFluxClientIT {
 
     @Test
     public void write_shouldWriteAnnotatedClass() {
@@ -38,7 +16,7 @@ public class JFluxClientAnnotationIT {
         testPoint.tag = "some tag value";
 
         // When
-        jFluxClient.write(DB_NAME, testPoint);
+        jFluxClient.write(dbName, testPoint);
 
         // Then
         // No exception should be thrown.
