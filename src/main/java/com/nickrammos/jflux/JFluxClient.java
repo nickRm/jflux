@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
-import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.AnnotationProcessingException;
@@ -29,6 +28,7 @@ public final class JFluxClient implements AutoCloseable {
 
     private final JFluxHttpClient httpClient;
     private final DatabaseManager databaseManager;
+    private final RetentionPolicyManager retentionPolicyManager;
     private final ApiCaller apiCaller;
     private final LineProtocolConverter lineProtocolConverter;
     private final NamingStrategy namingStrategy;
@@ -37,15 +37,18 @@ public final class JFluxClient implements AutoCloseable {
     /**
      * Initializes a new instance, setting the required dependencies.
      *
-     * @param httpClient      the InfluxDB HTTP API client
-     * @param databaseManager used for database management
+     * @param httpClient             the InfluxDB HTTP API client
+     * @param databaseManager        used for database management
+     * @param retentionPolicyManager used for retention policy management
      *
      * @throws IOException if the InfluxDB instance is unreachable
      * @see Builder
      */
-    JFluxClient(JFluxHttpClient httpClient, DatabaseManager databaseManager) throws IOException {
+    JFluxClient(JFluxHttpClient httpClient, DatabaseManager databaseManager,
+            RetentionPolicyManager retentionPolicyManager) throws IOException {
         this.httpClient = httpClient;
         this.databaseManager = databaseManager;
+        this.retentionPolicyManager = retentionPolicyManager;
 
         try {
             ResponseMetadata responseMetadata = httpClient.ping();
@@ -116,28 +119,13 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @return the database's retention policies
      *
-     * @throws NullPointerException     if {@code databaseName} is {@code null}
      * @throws IllegalArgumentException if the database does not exist
      */
     public List<RetentionPolicy> getRetentionPolicies(String databaseName) {
-        if (databaseName == null) {
-            throw new NullPointerException("Database name cannot be null");
-        }
-
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
-
-        String query = "SHOW RETENTION POLICIES ON \"" + databaseName + "\"";
-        Measurement queryResult = apiCaller.callApi(() -> httpClient.query(query));
-
-        RetentionPolicyConverter converter = new RetentionPolicyConverter();
-        List<RetentionPolicy> retentionPolicies = queryResult.getPoints()
-                .stream()
-                .map(converter::parsePoint)
-                .collect(Collectors.toList());
-        LOGGER.debug("Found retention policies {} on '{}'", retentionPolicies, databaseName);
-        return retentionPolicies;
+        return retentionPolicyManager.getRetentionPolicies(databaseName);
     }
 
     /**
@@ -153,14 +141,10 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if the database does not exist
      */
     public RetentionPolicy getRetentionPolicy(String retentionPolicyName, String databaseName) {
-        if (retentionPolicyName == null) {
-            throw new NullPointerException("Retention policy cannot be null");
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
         }
-
-        return getRetentionPolicies(databaseName).stream()
-                .filter(rp -> rp.getName().equals(retentionPolicyName))
-                .findFirst()
-                .orElse(null);
+        return retentionPolicyManager.getRetentionPolicy(retentionPolicyName, databaseName);
     }
 
     /**
@@ -176,7 +160,10 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if the database does not exist
      */
     public boolean retentionPolicyExists(String retentionPolicyName, String databaseName) {
-        return getRetentionPolicy(retentionPolicyName, databaseName) != null;
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+        return retentionPolicyManager.retentionPolicyExists(retentionPolicyName, databaseName);
     }
 
     /**
@@ -191,30 +178,10 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if the retention policy already exists
      */
     public void createRetentionPolicy(RetentionPolicy retentionPolicy, String databaseName) {
-        if (retentionPolicy == null) {
-            throw new NullPointerException("Retention policy cannot be null");
-        }
-
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
-
-        if (retentionPolicyExists(retentionPolicy.getName(), databaseName)) {
-            throw new IllegalArgumentException(
-                    "Retention policy " + retentionPolicy.getName() + " already exists on "
-                            + databaseName);
-        }
-
-        DurationConverter durationConverter = new DurationConverter();
-        String statement = "CREATE RETENTION POLICY \"" + retentionPolicy.getName() + '"'
-                + " ON \"" + databaseName + '"'
-                + " DURATION " + durationConverter.toLiteral(retentionPolicy.getDuration())
-                + " REPLICATION " + retentionPolicy.getReplication()
-                + " SHARD DURATION " + durationConverter.toLiteral(
-                retentionPolicy.getShardDuration())
-                + (retentionPolicy.isDefault() ? " DEFAULT" : "");
-        apiCaller.callApi(() -> httpClient.execute(statement));
-        LOGGER.info("Created retention policy {} on '{}'", retentionPolicy, databaseName);
+        retentionPolicyManager.createRetentionPolicy(retentionPolicy, databaseName);
     }
 
     /**
@@ -233,29 +200,11 @@ public final class JFluxClient implements AutoCloseable {
      */
     public void alterRetentionPolicy(String retentionPolicyName, String databaseName,
             RetentionPolicy newDefinition) {
-        if (newDefinition == null) {
-            throw new NullPointerException("Retention policy definition cannot be null");
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
         }
-
-        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
-        }
-
-        if (!retentionPolicyName.equals(newDefinition.getName())) {
-            LOGGER.warn("Retention policy name cannot be altered, will remain '{}'",
-                    retentionPolicyName);
-        }
-
-        DurationConverter durationConverter = new DurationConverter();
-        String statement = "ALTER RETENTION POLICY \"" + retentionPolicyName + '"'
-                + " ON \"" + databaseName + '"'
-                + " DURATION " + durationConverter.toLiteral(newDefinition.getDuration())
-                + " REPLICATION " + newDefinition.getReplication()
-                + " SHARD DURATION " + durationConverter.toLiteral(
-                newDefinition.getShardDuration())
-                + (newDefinition.isDefault() ? " DEFAULT" : "");
-        apiCaller.callApi(() -> httpClient.execute(statement));
-        LOGGER.info("Updated '{}'.'{}' to {}", databaseName, retentionPolicyName, newDefinition);
+        retentionPolicyManager.alterRetentionPolicy(retentionPolicyName, databaseName,
+                newDefinition);
     }
 
     /**
@@ -269,14 +218,10 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if either the retention policy or the database do not exist
      */
     public void dropRetentionPolicy(String retentionPolicyName, String databaseName) {
-        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
         }
-
-        String statement =
-                "DROP RETENTION POLICY \"" + retentionPolicyName + "\" ON \"" + databaseName + '"';
-        apiCaller.callApi(() -> httpClient.execute(statement));
-        LOGGER.info("Dropped retention policy '{}' on '{}'", retentionPolicyName, databaseName);
+        retentionPolicyManager.dropRetentionPolicy(retentionPolicyName, databaseName);
     }
 
     /**
@@ -474,7 +419,8 @@ public final class JFluxClient implements AutoCloseable {
         public JFluxClient build() throws IOException {
             JFluxHttpClient httpClient = new JFluxHttpClient.Builder(host).build();
             DatabaseManager databaseManager = new DatabaseManager(httpClient);
-            return new JFluxClient(httpClient, databaseManager);
+            RetentionPolicyManager retentionPolicyManager = new RetentionPolicyManager(httpClient);
+            return new JFluxClient(httpClient, databaseManager, retentionPolicyManager);
         }
     }
 }
