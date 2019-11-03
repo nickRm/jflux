@@ -1,7 +1,6 @@
 package com.nickrammos.jflux;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -26,26 +25,27 @@ import org.slf4j.LoggerFactory;
  */
 public final class JFluxClient implements AutoCloseable {
 
-    static final String INTERNAL_DATABASE_NAME = "_internal";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(JFluxClient.class);
 
     private final JFluxHttpClient httpClient;
+    private final DatabaseManager databaseManager;
     private final ApiCaller apiCaller;
     private final LineProtocolConverter lineProtocolConverter;
     private final NamingStrategy namingStrategy;
     private final AnnotationBasedPointConverter annotationBasedPointConverter;
 
     /**
-     * Initializes a new instance, setting the HTTP client used to query the InfluxDB API.
+     * Initializes a new instance, setting the required dependencies.
      *
-     * @param httpClient the InfluxDB HTTP API client
+     * @param httpClient      the InfluxDB HTTP API client
+     * @param databaseManager used for database management
      *
      * @throws IOException if the InfluxDB instance is unreachable
      * @see Builder
      */
-    JFluxClient(JFluxHttpClient httpClient) throws IOException {
+    JFluxClient(JFluxHttpClient httpClient, DatabaseManager databaseManager) throws IOException {
         this.httpClient = httpClient;
+        this.databaseManager = databaseManager;
 
         try {
             ResponseMetadata responseMetadata = httpClient.ping();
@@ -68,13 +68,7 @@ public final class JFluxClient implements AutoCloseable {
      * @return the existing databases, should always contain at least the internal one
      */
     public List<String> getDatabases() {
-        Measurement queryResult = apiCaller.callApi(() -> httpClient.query("SHOW DATABASES"));
-        List<String> databases = new ArrayList<>();
-        for (Point point : queryResult.getPoints()) {
-            databases.addAll(point.getTags().values());
-        }
-        LOGGER.debug("Found databases: {}", databases);
-        return databases;
+        return databaseManager.getDatabases();
     }
 
     /**
@@ -87,10 +81,7 @@ public final class JFluxClient implements AutoCloseable {
      * @throws NullPointerException if {@code databaseName} is {@code null}
      */
     public boolean databaseExists(String databaseName) {
-        if (databaseName == null) {
-            throw new NullPointerException("Database name cannot be null");
-        }
-        return getDatabases().contains(databaseName);
+        return databaseManager.databaseExists(databaseName);
     }
 
     /**
@@ -99,19 +90,10 @@ public final class JFluxClient implements AutoCloseable {
      * @param databaseName the database to create, not {@code null}
      *
      * @throws NullPointerException     if {@code databaseName} is {@code null}
-     * @throws IllegalArgumentException if the database already exists.
+     * @throws IllegalArgumentException if the database already exists
      */
     public void createDatabase(String databaseName) {
-        if (databaseName == null) {
-            throw new NullPointerException("Database name cannot be null");
-        }
-
-        if (databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Database " + databaseName + " already exists");
-        }
-
-        apiCaller.callApi(() -> httpClient.execute("CREATE DATABASE \"" + databaseName + "\""));
-        LOGGER.info("Created database '{}'", databaseName);
+        databaseManager.createDatabase(databaseName);
     }
 
     /**
@@ -124,20 +106,7 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if trying to drop the internal InfluxDB database
      */
     public void dropDatabase(String databaseName) {
-        if (databaseName == null) {
-            throw new NullPointerException("Database cannot be null");
-        }
-
-        if (INTERNAL_DATABASE_NAME.equals(databaseName)) {
-            throw new IllegalArgumentException("Cannot drop internal database");
-        }
-
-        if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
-        }
-
-        apiCaller.callApi(() -> httpClient.execute("DROP DATABASE \"" + databaseName + "\""));
-        LOGGER.info("Dropped database '{}'", databaseName);
+        databaseManager.dropDatabase(databaseName);
     }
 
     /**
@@ -504,7 +473,8 @@ public final class JFluxClient implements AutoCloseable {
          */
         public JFluxClient build() throws IOException {
             JFluxHttpClient httpClient = new JFluxHttpClient.Builder(host).build();
-            return new JFluxClient(httpClient);
+            DatabaseManager databaseManager = new DatabaseManager(httpClient);
+            return new JFluxClient(httpClient, databaseManager);
         }
     }
 }

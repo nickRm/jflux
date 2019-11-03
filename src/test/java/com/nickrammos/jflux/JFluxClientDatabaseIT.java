@@ -21,25 +21,25 @@ public class JFluxClientDatabaseIT {
     }
 
     @Test
-    public void showDatabases_showsResults() {
+    public void showDatabases_shouldShowResults() {
         // Given/When
         List<String> databases = jFluxClient.getDatabases();
 
         // Then
-        assertThat(databases).contains(JFluxClient.INTERNAL_DATABASE_NAME);
+        assertThat(databases).contains(DatabaseManager.INTERNAL_DATABASE_NAME);
     }
 
     @Test
     public void databaseExists_shouldReturnTrue_forExistingDatabase() {
         // Given/When
-        boolean exists = jFluxClient.databaseExists(JFluxClient.INTERNAL_DATABASE_NAME);
+        boolean exists = jFluxClient.databaseExists(DatabaseManager.INTERNAL_DATABASE_NAME);
 
         // Then
         assertThat(exists).isTrue();
     }
 
     @Test
-    public void databaseExists_shouldReturnTrue_forNonExistentDatabase() {
+    public void databaseExists_shouldReturnFalse_forNonExistentDatabase() {
         // Given/When
         boolean exists = jFluxClient.databaseExists("non_existent_db");
 
@@ -60,7 +60,7 @@ public class JFluxClientDatabaseIT {
 
     @Test(expected = IllegalArgumentException.class)
     public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
-        jFluxClient.createDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
+        jFluxClient.createDatabase(DatabaseManager.INTERNAL_DATABASE_NAME);
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -24,12 +24,15 @@ public class JFluxClientTest {
     @Mock
     private JFluxHttpClient httpClient;
 
+    @Mock
+    private DatabaseManager databaseManager;
+
     private JFluxClient jFluxClient;
 
     @Before
     public void setup() throws IOException {
         when(httpClient.ping()).thenReturn(new ResponseMetadata.Builder().build());
-        jFluxClient = new JFluxClient(httpClient);
+        jFluxClient = new JFluxClient(httpClient, databaseManager);
     }
 
     @Test(expected = IOException.class)
@@ -38,30 +41,10 @@ public class JFluxClientTest {
         doThrow(new IOException()).when(httpClient).ping();
 
         // When
-        new JFluxClient(httpClient);
+        new JFluxClient(httpClient, databaseManager);
 
         // Then
         // Expect exception.
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void databaseExists_shouldThrowException_ifNameIsNull() {
-        jFluxClient.databaseExists(null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void createDatabase_shouldThrowException_ifNameIsNull() {
-        jFluxClient.createDatabase(null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void dropDatabase_shouldThrowException_ifNameIsNull() {
-        jFluxClient.dropDatabase(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
-        jFluxClient.dropDatabase(JFluxClient.INTERNAL_DATABASE_NAME);
     }
 
     @Test(expected = NullPointerException.class)
@@ -94,7 +77,7 @@ public class JFluxClientTest {
         jFluxClient.createRetentionPolicy(null, "some_db");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void createRetentionPolicy_shouldThrowException_ifDatabaseIsNull() {
         RetentionPolicy retentionPolicy =
                 new RetentionPolicy.Builder("test_rp", Duration.ZERO).build();
@@ -137,10 +120,10 @@ public class JFluxClientTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void writeToRetentionPolicy_shouldThrowException_ifInputIsNull() {
-        jFluxClient.write("some_db", "som_rp", (Object) null);
+        jFluxClient.write("some_db", "some_rp", (Object) null);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void writePoint_shouldThrowException_ifDatabaseNameIsNull() {
         jFluxClient.writePoint(null, "some_measurement", new Point.Builder().build());
     }
