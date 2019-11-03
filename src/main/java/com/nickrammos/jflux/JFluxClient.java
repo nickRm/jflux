@@ -12,6 +12,7 @@ import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
+import com.nickrammos.jflux.exception.AnnotationProcessingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,8 @@ public final class JFluxClient implements AutoCloseable {
 
     private final JFluxHttpClient httpClient;
     private final LineProtocolConverter lineProtocolConverter;
+    private final NamingStrategy namingStrategy;
+    private final AnnotationBasedPointConverter annotationBasedPointConverter;
 
     /**
      * Initializes a new instance, setting the HTTP client used to query the InfluxDB API.
@@ -53,6 +56,8 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         lineProtocolConverter = new LineProtocolConverter();
+        namingStrategy = new NamingStrategy();
+        annotationBasedPointConverter = new AnnotationBasedPointConverter(namingStrategy);
     }
 
     /**
@@ -301,6 +306,97 @@ public final class JFluxClient implements AutoCloseable {
                 "DROP RETENTION POLICY \"" + retentionPolicyName + "\" ON \"" + databaseName + '"';
         callApi(() -> httpClient.execute(statement));
         LOGGER.info("Dropped retention policy '{}' on '{}'", retentionPolicyName, databaseName);
+    }
+
+    /**
+     * Alias for {@link #write(String, Collection)} for a single point.
+     *
+     * @param databaseName the database to write to, not {@code null}
+     * @param data         the data to write, not {@code null}
+     *
+     * @throws AnnotationProcessingException if the data object is not correctly annotated
+     * @throws IllegalArgumentException      if the input data is {@code null}
+     * @throws IllegalArgumentException      if the database does not exist
+     * @see #writePoint(String, String, Point)
+     */
+    public void write(String databaseName, Object data) {
+        if (data == null) {
+            throw new IllegalArgumentException("Input cannot be null");
+        }
+
+        write(databaseName, Collections.singleton(data));
+    }
+
+    /**
+     * Writes the specified data to the specified database, using the default retention policy.
+     * <p>
+     * The data object must be annotated in order to be converted to points and written to InfluxDB.
+     *
+     * @param databaseName the database to write to, not {@code null}
+     * @param data         the data to write
+     *
+     * @throws AnnotationProcessingException if the data objects are not correctly annotated
+     * @throws IllegalArgumentException      if the database does not exist
+     * @see #writePoints(String, String, Collection)
+     */
+    public void write(String databaseName, Collection<?> data) {
+        if (data.isEmpty()) {
+            return;
+        }
+
+        Class<?> dataClass = data.iterator().next().getClass();
+        String measurementName = namingStrategy.getMeasurementName(dataClass);
+        List<Point> points = data.parallelStream()
+                .map(annotationBasedPointConverter::toPoint)
+                .collect(Collectors.toList());
+        writePoints(databaseName, measurementName, points);
+    }
+
+    /**
+     * Alias for {@link #write(String, String, Collection)} for a single point.
+     *
+     * @param databaseName        the database to write to, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     * @param data                the data to write, not {@code null}
+     *
+     * @throws AnnotationProcessingException if the data object is not correctly annotated
+     * @throws IllegalArgumentException      if the database does not exist
+     * @throws IllegalArgumentException      if the retention policy does not exist
+     * @see #writePoint(String, String, String, Point)
+     */
+    public void write(String databaseName, String retentionPolicyName, Object data) {
+        if (data == null) {
+            throw new IllegalArgumentException("Input cannot be null");
+        }
+
+        write(databaseName, retentionPolicyName, Collections.singleton(data));
+    }
+
+    /**
+     * Writes the specified data to the specified database, using the specified retention policy.
+     * <p>
+     * The data object must be annotated in order to be converted to points and written to InfluxDB.
+     *
+     * @param databaseName        the database to write to, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     * @param data                the data to write
+     *
+     * @throws AnnotationProcessingException if the data objects are not correctly annotated
+     * @throws IllegalArgumentException      if the database does not exist
+     * @throws IllegalArgumentException      if the retention policy does not exist
+     * @see #writePoints(String, String, String, Collection)
+     */
+    public void write(String databaseName, String retentionPolicyName, Collection<?> data) {
+        if (data.isEmpty()) {
+            return;
+        }
+
+        Class<?> dataClass = data.iterator().next().getClass();
+        String measurementName = namingStrategy.getMeasurementName(dataClass);
+        List<Point> points = data.parallelStream()
+                .map(annotationBasedPointConverter::toPoint)
+                .collect(Collectors.toList());
+        writePoints(databaseName, measurementName, retentionPolicyName, points);
     }
 
     /**

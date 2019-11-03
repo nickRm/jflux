@@ -130,8 +130,18 @@ public class JFluxClientTest {
         jFluxClient.dropRetentionPolicy("some_rp", null);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void write_shouldThrowException_ifInputIsNull() {
+        jFluxClient.write("some_db", (Object) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void writeToRetentionPolicy_shouldThrowException_ifInputIsNull() {
+        jFluxClient.write("some_db", "som_rp", (Object) null);
+    }
+
     @Test(expected = NullPointerException.class)
-    public void write_shouldThrowException_ifDatabaseNameIsNull() {
+    public void writePoint_shouldThrowException_ifDatabaseNameIsNull() {
         jFluxClient.writePoint(null, "some_measurement", new Point.Builder().build());
     }
 
