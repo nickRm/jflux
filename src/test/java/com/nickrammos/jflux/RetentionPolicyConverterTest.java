@@ -41,7 +41,7 @@ public class RetentionPolicyConverterTest {
         assertThat(actualRetentionPolicy).isEqualTo(expectedRetentionPolicy);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void parsePoint_shouldThrowException_ifInputIsNull() {
         new RetentionPolicyConverter().parsePoint(null);
     }

@@ -21,17 +21,17 @@ public class DatabaseManagerTest {
         databaseManager = new DatabaseManager(httpClient);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void databaseExists_shouldThrowException_ifNameIsNull() {
         databaseManager.databaseExists(null);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void createDatabase_shouldThrowException_ifNameIsNull() {
         databaseManager.createDatabase(null);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void dropDatabase_shouldThrowException_ifNameIsNull() {
         databaseManager.dropDatabase(null);
     }

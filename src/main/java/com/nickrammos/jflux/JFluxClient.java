@@ -81,7 +81,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @return {@code true} if the database exists, {@code false} otherwise
      *
-     * @throws NullPointerException if {@code databaseName} is {@code null}
+     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
      */
     public boolean databaseExists(String databaseName) {
         return databaseManager.databaseExists(databaseName);
@@ -92,7 +92,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @param databaseName the database to create, not {@code null}
      *
-     * @throws NullPointerException     if {@code databaseName} is {@code null}
+     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
      * @throws IllegalArgumentException if the database already exists
      */
     public void createDatabase(String databaseName) {
@@ -107,7 +107,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @param databaseName the database to drop, not {@code null}
      *
-     * @throws NullPointerException     if {@code databaseName} is {@code null}
+     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
      * @throws IllegalArgumentException if the database does not exist
      * @throws IllegalArgumentException if trying to drop the internal InfluxDB database
      */
@@ -142,7 +142,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @return the retention policy definition, or {@code null} if not found
      *
-     * @throws NullPointerException     if {@code retentionPolicyName} or {@code databaseName} are
+     * @throws IllegalArgumentException if {@code retentionPolicyName} or {@code databaseName} are
      *                                  {@code null}
      * @throws IllegalArgumentException if the database does not exist
      */
@@ -162,7 +162,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @return {@code true} if the retention policy exists, {@code false} otherwise
      *
-     * @throws NullPointerException     if the retention policy or database names are null
+     * @throws IllegalArgumentException if the retention policy or database names are null
      * @throws IllegalArgumentException if the database does not exist
      */
     public boolean retentionPolicyExists(String retentionPolicyName, String databaseName) {
@@ -178,7 +178,7 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicy the retention policy to create
      * @param databaseName    the database to create the retention policy on
      *
-     * @throws NullPointerException     if {@code retentionPolicy} or {@code databaseName} is {@code
+     * @throws IllegalArgumentException if {@code retentionPolicy} or {@code databaseName} is {@code
      *                                  null}
      * @throws IllegalArgumentException if the database does not exist
      * @throws IllegalArgumentException if the retention policy already exists
@@ -207,7 +207,7 @@ public final class JFluxClient implements AutoCloseable {
      * @param databaseName        the database the retention policy is defined on
      * @param newDefinition       the new definition for the retention policy
      *
-     * @throws NullPointerException     if any of the arguments are {@code null}
+     * @throws IllegalArgumentException if any of the arguments are {@code null}
      * @throws IllegalArgumentException if the database does not exist
      * @throws IllegalArgumentException if the retention policy does not exist
      */
@@ -232,7 +232,7 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to drop
      * @param databaseName        the database the retention policy is defined on
      *
-     * @throws NullPointerException     if {@code retentionPolicy} or {@code databaseName} are
+     * @throws IllegalArgumentException if {@code retentionPolicy} or {@code databaseName} are
      *                                  {@code null}
      * @throws IllegalArgumentException if either the retention policy or the database do not exist
      */

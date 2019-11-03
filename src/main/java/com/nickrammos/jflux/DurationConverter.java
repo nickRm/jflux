@@ -51,12 +51,12 @@ final class DurationConverter {
      *
      * @return the duration literal
      *
-     * @throws NullPointerException     if {@code duration} is {@code null}
+     * @throws IllegalArgumentException if {@code duration} is {@code null}
      * @throws IllegalArgumentException if {@code duration} is negative
      */
     String toLiteral(Duration duration) {
         if (duration == null) {
-            throw new NullPointerException("Duration cannot be null");
+            throw new IllegalArgumentException("Duration cannot be null");
         }
 
         if (duration.isNegative()) {

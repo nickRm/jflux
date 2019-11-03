@@ -26,11 +26,11 @@ final class RetentionPolicyConverter {
      *
      * @return the retention policy
      *
-     * @throws NullPointerException if {@code point} is {@code null}
+     * @throws IllegalArgumentException if {@code point} is {@code null}
      */
     RetentionPolicy parsePoint(Point point) {
         if (point == null) {
-            throw new NullPointerException("Point cannot be null");
+            throw new IllegalArgumentException("Point cannot be null");
         }
 
         String retentionPolicyName = point.getTags().get("name");

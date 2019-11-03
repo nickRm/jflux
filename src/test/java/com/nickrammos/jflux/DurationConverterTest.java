@@ -62,7 +62,7 @@ public class DurationConverterTest {
         assertThat(literal).isEqualTo("0s");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void toLiteral_shouldThrowException_ifDurationIsNull() {
         durationConverter.toLiteral(null);
     }
