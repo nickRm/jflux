@@ -37,7 +37,7 @@ public class JFluxClientIT {
                 .build();
 
         // When
-        jFluxClient.write(DB_NAME, "some_measurement", point);
+        jFluxClient.writePoint(DB_NAME, "some_measurement", point);
 
         // Then
         // No exception should be thrown.
@@ -51,7 +51,7 @@ public class JFluxClientIT {
                 .build();
 
         // When
-        jFluxClient.write("non_existent_db", "some_measurement", point);
+        jFluxClient.writePoint("non_existent_db", "some_measurement", point);
 
         // Then
         // Exception should be thrown.
@@ -65,7 +65,7 @@ public class JFluxClientIT {
                 .build();
 
         // When
-        jFluxClient.write(DB_NAME, "some_measurement", "non_existent_rp", point);
+        jFluxClient.writePoint(DB_NAME, "some_measurement", "non_existent_rp", point);
 
         // Then
         // Exception should be thrown.

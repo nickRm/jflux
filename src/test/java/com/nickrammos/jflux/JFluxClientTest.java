@@ -132,7 +132,7 @@ public class JFluxClientTest {
 
     @Test(expected = NullPointerException.class)
     public void write_shouldThrowException_ifDatabaseNameIsNull() {
-        jFluxClient.write(null, "some_measurement", new Point.Builder().build());
+        jFluxClient.writePoint(null, "some_measurement", new Point.Builder().build());
     }
 
     @Test

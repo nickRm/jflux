@@ -304,7 +304,7 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
-     * Alias for {@link #write(String, String, Collection)} for a single point.
+     * Alias for {@link #writePoints(String, String, Collection)} for a single point.
      *
      * @param databaseName    the database to write to, not {@code null}
      * @param measurementName the measurement to write to, not {@code null}
@@ -312,8 +312,8 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @throws IllegalArgumentException if the database does not exist
      */
-    public void write(String databaseName, String measurementName, Point point) {
-        write(databaseName, measurementName, Collections.singleton(point));
+    public void writePoint(String databaseName, String measurementName, Point point) {
+        writePoints(databaseName, measurementName, Collections.singleton(point));
     }
 
     /**
@@ -325,7 +325,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @throws IllegalArgumentException if the database does not exist
      */
-    public void write(String databaseName, String measurementName, Collection<Point> points) {
+    public void writePoints(String databaseName, String measurementName, Collection<Point> points) {
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
@@ -336,18 +336,19 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
-     * Alias for {@link #write(String, String, String, Collection)} for a single point.
+     * Alias for {@link #writePoints(String, String, String, Collection)} for a single point.
      *
      * @param databaseName        the database to write to, not {@code null}
      * @param measurementName     the measurement to write to, not {@code null}
      * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param point               the point to write
      *
-     * @throws IllegalArgumentException if the database or retention poliocy does not exist
+     * @throws IllegalArgumentException if the database or retention policy does not exist
      */
-    public void write(String databaseName, String measurementName, String retentionPolicyName,
+    public void writePoint(String databaseName, String measurementName, String retentionPolicyName,
             Point point) {
-        write(databaseName, measurementName, retentionPolicyName, Collections.singleton(point));
+        writePoints(databaseName, measurementName, retentionPolicyName,
+                Collections.singleton(point));
     }
 
     /**
@@ -358,9 +359,9 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param points              the points to write
      *
-     * @throws IllegalArgumentException if the database or retention poliocy does not exist
+     * @throws IllegalArgumentException if the database or retention policy does not exist
      */
-    public void write(String databaseName, String measurementName, String retentionPolicyName,
+    public void writePoints(String databaseName, String measurementName, String retentionPolicyName,
             Collection<Point> points) {
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
