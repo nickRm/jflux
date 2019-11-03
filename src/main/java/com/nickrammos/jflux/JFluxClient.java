@@ -31,6 +31,7 @@ public final class JFluxClient implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JFluxClient.class);
 
     private final JFluxHttpClient httpClient;
+    private final ApiCaller apiCaller;
     private final LineProtocolConverter lineProtocolConverter;
     private final NamingStrategy namingStrategy;
     private final AnnotationBasedPointConverter annotationBasedPointConverter;
@@ -55,6 +56,7 @@ public final class JFluxClient implements AutoCloseable {
             throw new IOException("Could not connect to InfluxDB instance", e);
         }
 
+        apiCaller = new ApiCaller();
         lineProtocolConverter = new LineProtocolConverter();
         namingStrategy = new NamingStrategy();
         annotationBasedPointConverter = new AnnotationBasedPointConverter(namingStrategy);
@@ -66,7 +68,7 @@ public final class JFluxClient implements AutoCloseable {
      * @return the existing databases, should always contain at least the internal one
      */
     public List<String> getDatabases() {
-        Measurement queryResult = callApi(() -> httpClient.query("SHOW DATABASES"));
+        Measurement queryResult = apiCaller.callApi(() -> httpClient.query("SHOW DATABASES"));
         List<String> databases = new ArrayList<>();
         for (Point point : queryResult.getPoints()) {
             databases.addAll(point.getTags().values());
@@ -108,7 +110,7 @@ public final class JFluxClient implements AutoCloseable {
             throw new IllegalArgumentException("Database " + databaseName + " already exists");
         }
 
-        callApi(() -> httpClient.execute("CREATE DATABASE \"" + databaseName + "\""));
+        apiCaller.callApi(() -> httpClient.execute("CREATE DATABASE \"" + databaseName + "\""));
         LOGGER.info("Created database '{}'", databaseName);
     }
 
@@ -134,7 +136,7 @@ public final class JFluxClient implements AutoCloseable {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
 
-        callApi(() -> httpClient.execute("DROP DATABASE \"" + databaseName + "\""));
+        apiCaller.callApi(() -> httpClient.execute("DROP DATABASE \"" + databaseName + "\""));
         LOGGER.info("Dropped database '{}'", databaseName);
     }
 
@@ -158,7 +160,7 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         String query = "SHOW RETENTION POLICIES ON \"" + databaseName + "\"";
-        Measurement queryResult = callApi(() -> httpClient.query(query));
+        Measurement queryResult = apiCaller.callApi(() -> httpClient.query(query));
 
         RetentionPolicyConverter converter = new RetentionPolicyConverter();
         List<RetentionPolicy> retentionPolicies = queryResult.getPoints()
@@ -242,7 +244,7 @@ public final class JFluxClient implements AutoCloseable {
                 + " SHARD DURATION " + durationConverter.toLiteral(
                 retentionPolicy.getShardDuration())
                 + (retentionPolicy.isDefault() ? " DEFAULT" : "");
-        callApi(() -> httpClient.execute(statement));
+        apiCaller.callApi(() -> httpClient.execute(statement));
         LOGGER.info("Created retention policy {} on '{}'", retentionPolicy, databaseName);
     }
 
@@ -283,7 +285,7 @@ public final class JFluxClient implements AutoCloseable {
                 + " SHARD DURATION " + durationConverter.toLiteral(
                 newDefinition.getShardDuration())
                 + (newDefinition.isDefault() ? " DEFAULT" : "");
-        callApi(() -> httpClient.execute(statement));
+        apiCaller.callApi(() -> httpClient.execute(statement));
         LOGGER.info("Updated '{}'.'{}' to {}", databaseName, retentionPolicyName, newDefinition);
     }
 
@@ -304,7 +306,7 @@ public final class JFluxClient implements AutoCloseable {
 
         String statement =
                 "DROP RETENTION POLICY \"" + retentionPolicyName + "\" ON \"" + databaseName + '"';
-        callApi(() -> httpClient.execute(statement));
+        apiCaller.callApi(() -> httpClient.execute(statement));
         LOGGER.info("Dropped retention policy '{}' on '{}'", retentionPolicyName, databaseName);
     }
 
@@ -427,7 +429,7 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         lineProtocolConverter.toLineProtocol(measurementName, points)
-                .forEach(lineProtocol -> callApi(
+                .forEach(lineProtocol -> apiCaller.callApi(
                         () -> httpClient.write(databaseName, lineProtocol)));
     }
 
@@ -468,24 +470,8 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         lineProtocolConverter.toLineProtocol(measurementName, points)
-                .forEach(lineProtocol -> callApi(
+                .forEach(lineProtocol -> apiCaller.callApi(
                         () -> httpClient.write(databaseName, retentionPolicyName, lineProtocol)));
-    }
-
-    private void callApi(IOThrowingRunnable apiMethod) {
-        try {
-            apiMethod.run();
-        } catch (IOException e) {
-            throw new IllegalStateException("Connection to InfluxDB lost", e);
-        }
-    }
-
-    private <T> T callApi(IOThrowingSupplier<T> apiMethod) {
-        try {
-            return apiMethod.get();
-        } catch (IOException e) {
-            throw new IllegalStateException("Connection to InfluxDB lost", e);
-        }
     }
 
     @Override
@@ -520,23 +506,5 @@ public final class JFluxClient implements AutoCloseable {
             JFluxHttpClient httpClient = new JFluxHttpClient.Builder(host).build();
             return new JFluxClient(httpClient);
         }
-    }
-
-    /**
-     * Convenience interface for runnables that throw IOExceptions.
-     */
-    private interface IOThrowingRunnable {
-
-        void run() throws IOException;
-    }
-
-    /**
-     * Convenience interface for suppliers that throw IOExceptions.
-     *
-     * @param <T> type of the return value
-     */
-    private interface IOThrowingSupplier<T> {
-
-        T get() throws IOException;
     }
 }
