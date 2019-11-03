@@ -96,6 +96,9 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if the database already exists
      */
     public void createDatabase(String databaseName) {
+        if (databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Database " + databaseName + " already exists");
+        }
         databaseManager.createDatabase(databaseName);
     }
 
@@ -109,6 +112,9 @@ public final class JFluxClient implements AutoCloseable {
      * @throws IllegalArgumentException if trying to drop the internal InfluxDB database
      */
     public void dropDatabase(String databaseName) {
+        if (!databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Database " + databaseName + " already exists");
+        }
         databaseManager.dropDatabase(databaseName);
     }
 
@@ -181,6 +187,13 @@ public final class JFluxClient implements AutoCloseable {
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
+
+        if (retentionPolicyExists(retentionPolicy.getName(), databaseName)) {
+            throw new IllegalArgumentException(
+                    "Retention policy " + retentionPolicy.getName() + " already exists on "
+                            + databaseName);
+        }
+
         retentionPolicyManager.createRetentionPolicy(retentionPolicy, databaseName);
     }
 
@@ -203,6 +216,12 @@ public final class JFluxClient implements AutoCloseable {
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
+
+        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
+            throw new IllegalArgumentException(
+                    "Unknown retention policy " + retentionPolicyName + " on " + databaseName);
+        }
+
         retentionPolicyManager.alterRetentionPolicy(retentionPolicyName, databaseName,
                 newDefinition);
     }
@@ -221,6 +240,12 @@ public final class JFluxClient implements AutoCloseable {
         if (!databaseExists(databaseName)) {
             throw new IllegalArgumentException("Unknown database " + databaseName);
         }
+
+        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
+            throw new IllegalArgumentException(
+                    "Unknown retention policy " + retentionPolicyName + " on " + databaseName);
+        }
+
         retentionPolicyManager.dropRetentionPolicy(retentionPolicyName, databaseName);
     }
 

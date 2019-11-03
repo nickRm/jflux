@@ -94,9 +94,8 @@ final class RetentionPolicyManager {
      * @param retentionPolicy the retention policy to create
      * @param databaseName    the database to create the retention policy on
      *
-     * @throws NullPointerException     if {@code retentionPolicy} or {@code databaseName} is {@code
-     *                                  null}
-     * @throws IllegalArgumentException if the retention policy already exists
+     * @throws NullPointerException if {@code retentionPolicy} or {@code databaseName} is {@code
+     *                              null}
      */
     void createRetentionPolicy(RetentionPolicy retentionPolicy, String databaseName) {
         if (retentionPolicy == null) {
@@ -105,12 +104,6 @@ final class RetentionPolicyManager {
 
         if (databaseName == null) {
             throw new NullPointerException("Database name cannot be null");
-        }
-
-        if (retentionPolicyExists(retentionPolicy.getName(), databaseName)) {
-            throw new IllegalArgumentException(
-                    "Retention policy " + retentionPolicy.getName() + " already exists on "
-                            + databaseName);
         }
 
         DurationConverter durationConverter = new DurationConverter();
@@ -135,17 +128,20 @@ final class RetentionPolicyManager {
      * @param databaseName        the database the retention policy is defined on
      * @param newDefinition       the new definition for the retention policy
      *
-     * @throws NullPointerException     if any of the arguments are {@code null}
-     * @throws IllegalArgumentException if the retention policy does not exist
+     * @throws NullPointerException if any of the arguments are {@code null}
      */
     void alterRetentionPolicy(String retentionPolicyName, String databaseName,
             RetentionPolicy newDefinition) {
-        if (newDefinition == null) {
-            throw new NullPointerException("Retention policy definition cannot be null");
+        if (retentionPolicyName == null) {
+            throw new NullPointerException("Retention policy name cannot be null");
         }
 
-        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+        if (databaseName == null) {
+            throw new NullPointerException("Database name cannot be null");
+        }
+
+        if (newDefinition == null) {
+            throw new NullPointerException("Retention policy definition cannot be null");
         }
 
         if (!retentionPolicyName.equals(newDefinition.getName())) {
@@ -171,13 +167,16 @@ final class RetentionPolicyManager {
      * @param retentionPolicyName the retention policy to drop
      * @param databaseName        the database the retention policy is defined on
      *
-     * @throws NullPointerException     if {@code retentionPolicy} or {@code databaseName} are
-     *                                  {@code null}
-     * @throws IllegalArgumentException if either retention policy does not exist
+     * @throws NullPointerException if {@code retentionPolicy} or {@code databaseName} are
+     *                              {@code null}
      */
     void dropRetentionPolicy(String retentionPolicyName, String databaseName) {
-        if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+        if (retentionPolicyName == null) {
+            throw new NullPointerException("Retention policy name cannot be null");
+        }
+
+        if (databaseName == null) {
+            throw new NullPointerException("Database name cannot be null");
         }
 
         String statement =

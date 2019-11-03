@@ -64,15 +64,10 @@ final class DatabaseManager {
      * @param databaseName the database to create, not {@code null}
      *
      * @throws NullPointerException     if {@code databaseName} is {@code null}
-     * @throws IllegalArgumentException if the database already exists
      */
     void createDatabase(String databaseName) {
         if (databaseName == null) {
             throw new NullPointerException("Database name cannot be null");
-        }
-
-        if (databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Database " + databaseName + " already exists");
         }
 
         apiCaller.callApi(() -> httpClient.execute("CREATE DATABASE \"" + databaseName + "\""));
@@ -85,7 +80,6 @@ final class DatabaseManager {
      * @param databaseName the database to drop, not {@code null}
      *
      * @throws NullPointerException     if {@code databaseName} is {@code null}
-     * @throws IllegalArgumentException if the database does not exist
      * @throws IllegalArgumentException if trying to drop the internal InfluxDB database
      */
     void dropDatabase(String databaseName) {
@@ -95,10 +89,6 @@ final class DatabaseManager {
 
         if (INTERNAL_DATABASE_NAME.equals(databaseName)) {
             throw new IllegalArgumentException("Cannot drop internal database");
-        }
-
-        if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
         }
 
         apiCaller.callApi(() -> httpClient.execute("DROP DATABASE \"" + databaseName + "\""));

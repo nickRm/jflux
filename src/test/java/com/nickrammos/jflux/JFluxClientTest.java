@@ -52,6 +52,32 @@ public class JFluxClientTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void createDatabase_shouldThrowException_ifDatabaseExists() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        // When
+        jFluxClient.createDatabase(databaseName);
+
+        // Then
+        // Expect exception.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
+        // Given
+        String databaseName = "non_existent_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(false);
+
+        // When
+        jFluxClient.dropDatabase(databaseName);
+
+        // Then
+        // Expect exception.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void getRetentionPolicies_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -107,6 +133,25 @@ public class JFluxClientTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void createRetentionPolicy_shouldThrowException_ifAlreadyExists() {
+        // Given
+        String databaseName = "some_db";
+        String retentionPolicyName = "some_rp";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+
+        // When
+        jFluxClient.createRetentionPolicy(retentionPolicy, databaseName);
+
+        // Then
+        // Expect exception.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void alterRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -123,6 +168,25 @@ public class JFluxClientTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void alterRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
+        // Given
+        String databaseName = "some_db";
+        String retentionPolicyName = "non_existent_rp";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(false);
+
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
+
+        // When
+        jFluxClient.alterRetentionPolicy(retentionPolicyName, databaseName, newDefinition);
+
+        // Then
+        // Expect exception.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void dropRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -130,6 +194,22 @@ public class JFluxClientTest {
 
         // When
         jFluxClient.dropRetentionPolicy("some_rp", databaseName);
+
+        // Then
+        // Expect exception.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dropRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
+        // Given
+        String databaseName = "some_db";
+        String retentionPolicyName = "non_existent_rp";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(false);
+
+        // When
+        jFluxClient.dropRetentionPolicy(retentionPolicyName, databaseName);
 
         // Then
         // Expect exception.

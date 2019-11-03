@@ -65,23 +65,4 @@ public class JFluxClientRetentionPolicyIT extends AbstractJFluxClientIT {
         jFluxClient.dropRetentionPolicy(retentionPolicyName, dbName);
         assertThat(jFluxClient.retentionPolicyExists(retentionPolicyName, dbName)).isFalse();
     }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createRetentionPolicy_shouldThrowException_ifRetentionPolicyAlreadyExists() {
-        RetentionPolicy retentionPolicy =
-                new RetentionPolicy.Builder("autogen", Duration.ZERO).build();
-        jFluxClient.createRetentionPolicy(retentionPolicy, dbName);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void alterRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
-        RetentionPolicy newDefinition =
-                new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
-        jFluxClient.alterRetentionPolicy("non_existent_rp", dbName, newDefinition);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void dropRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
-        jFluxClient.dropRetentionPolicy("non_existent_rp", dbName);
-    }
 }
