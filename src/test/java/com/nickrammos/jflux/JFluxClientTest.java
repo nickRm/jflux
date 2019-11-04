@@ -3,6 +3,7 @@ package com.nickrammos.jflux;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
@@ -17,6 +18,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -273,6 +276,43 @@ public class JFluxClientTest {
 
         // Then
         // Exception should be thrown.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getAllPoints_shouldThrowException_ifDatabaseNameIsNull() {
+        jFluxClient.getAllPoints(null, "some_measurement");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getAllPoints_shouldThrowException_ifDatabaseDoesNotExist() {
+        // Given
+        String dbName = "some_db";
+        when(databaseManager.databaseExists(dbName)).thenReturn(false);
+
+        // When
+        jFluxClient.getAllPoints(dbName, "some_measurement");
+
+        // Then
+        // Expect exception.
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getAllPoints_shouldThrowException_ifMeasurementNameIsNull() {
+        jFluxClient.getAllPoints("db_name", null);
+    }
+
+    @Test
+    public void getAllPoints_shouldReturnEmptyList_ifNoResults() throws IOException {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+        when(httpClient.query(anyString())).thenReturn(null);
+
+        // When
+        List<Point> points = jFluxClient.getAllPoints(databaseName, "non_existent_measurement");
+
+        // Then
+        assertThat(points).isEmpty();
     }
 
     @Test
