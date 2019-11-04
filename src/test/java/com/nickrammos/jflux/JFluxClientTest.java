@@ -6,8 +6,10 @@ import java.util.Collections;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
+import com.nickrammos.jflux.domain.BuildType;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
+import com.nickrammos.jflux.domain.Version;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +37,13 @@ public class JFluxClientTest {
 
     @Before
     public void setup() throws IOException {
-        when(httpClient.ping()).thenReturn(new ResponseMetadata.Builder().build());
+        ResponseMetadata pingResponse =
+                new ResponseMetadata.Builder().dbBuildType(BuildType.OPEN_SOURCE)
+                        .dbVersion(Version.fromString("0.0.0"))
+                        .build();
+        when(httpClient.ping()).thenReturn(pingResponse);
+        when(httpClient.getHostUrl()).thenReturn("test-mock");
+
         jFluxClient = new JFluxClient(httpClient, databaseManager, retentionPolicyManager);
     }
 
