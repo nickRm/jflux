@@ -2,8 +2,8 @@ package com.nickrammos.jflux;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractJFluxClientIT {
 
@@ -14,13 +14,13 @@ public abstract class AbstractJFluxClientIT {
 
     JFluxClient jFluxClient;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         jFluxClient = new JFluxClient.Builder(INFLUX_DB_URL).build();
         jFluxClient.createDatabase(dbName);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         jFluxClient.dropDatabase(dbName);
     }

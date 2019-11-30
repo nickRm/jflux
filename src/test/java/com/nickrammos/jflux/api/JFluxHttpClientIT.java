@@ -6,9 +6,9 @@ import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.exception.InfluxClientException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -23,7 +23,7 @@ public class JFluxHttpClientIT {
 
     private final JFluxHttpClient client = new JFluxHttpClient.Builder(INFLUX_DB_URL).build();
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         client.execute("CREATE DATABASE " + DB_NAME);
 
@@ -36,7 +36,7 @@ public class JFluxHttpClientIT {
         client.execute(createRPStatement);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws IOException {
         client.execute("DROP DATABASE " + DB_NAME);
     }

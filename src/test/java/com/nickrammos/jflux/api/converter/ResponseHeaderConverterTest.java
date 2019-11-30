@@ -5,7 +5,7 @@ import com.nickrammos.jflux.domain.BuildType;
 import com.nickrammos.jflux.domain.Version;
 
 import okhttp3.Headers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

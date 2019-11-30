@@ -10,7 +10,7 @@ import com.nickrammos.jflux.exception.DuplicateAnnotatedMembersException;
 import com.nickrammos.jflux.exception.InvalidAnnotatedType;
 import com.nickrammos.jflux.exception.MissingAnnotatedMemberException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

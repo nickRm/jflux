@@ -6,7 +6,7 @@ import com.nickrammos.jflux.api.response.ApiResponse;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import retrofit2.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;

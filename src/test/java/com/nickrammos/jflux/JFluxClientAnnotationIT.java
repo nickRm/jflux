@@ -3,7 +3,7 @@ package com.nickrammos.jflux;
 import com.nickrammos.jflux.annotation.Field;
 import com.nickrammos.jflux.annotation.Tag;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JFluxClientAnnotationIT extends AbstractJFluxClientIT {
 

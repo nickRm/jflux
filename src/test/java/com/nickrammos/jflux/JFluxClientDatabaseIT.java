@@ -3,8 +3,8 @@ package com.nickrammos.jflux;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -16,7 +16,7 @@ public class JFluxClientDatabaseIT {
 
     private JFluxClient jFluxClient;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         jFluxClient = new JFluxClient.Builder(INFLUX_DB_URL).build();
     }

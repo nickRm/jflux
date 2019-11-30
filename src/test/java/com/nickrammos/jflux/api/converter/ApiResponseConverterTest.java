@@ -5,16 +5,16 @@ import java.io.IOException;
 import com.nickrammos.jflux.api.response.ApiResponse;
 
 import okhttp3.ResponseBody;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import retrofit2.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiResponseConverterTest {
 
     @Mock
@@ -28,7 +28,7 @@ public class ApiResponseConverterTest {
 
     private ApiResponseConverter apiResponseConverter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         apiResponseConverter =
                 new ApiResponseConverter(responseHeaderConverter, responseBodyConverter,

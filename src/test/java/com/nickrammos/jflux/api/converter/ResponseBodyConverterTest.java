@@ -10,7 +10,7 @@ import com.nickrammos.jflux.domain.Point;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
