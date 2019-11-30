@@ -134,9 +134,9 @@ public final class JFluxHttpClient implements AutoCloseable {
      * <p><blockquote><pre>{@code
      * SELECT * FROM measurement_1, measurement_2
      * }</pre></blockquote><p>
-     * Note that while single serie queries are possible with this method, the responsibility of
+     * Note that while single series queries are possible with this method, the responsibility of
      * unwrapping the result falls then on the caller. For a more convenient way of executing
-     * single serie queries see {@link #query(String)}.
+     * single series queries see {@link #query(String)}.
      *
      * @param query the query to execute
      *
@@ -163,9 +163,9 @@ public final class JFluxHttpClient implements AutoCloseable {
      * <p><blockquote><pre>{@code
      * SELECT * FROM measurement_1; SELECT * FROM measurement_2, measurement_3;
      * }</pre></blockquote><p>
-     * Note that while single statement and/or single serie queries are also possible with this
+     * Note that while single statement and/or single series queries are also possible with this
      * method, the responsibility of unwrapping the result falls then on the caller. For more
-     * convenient ways of executing single statement and single serie queries see
+     * convenient ways of executing single statement and single series queries see
      * {@link #query(String)} and {@link #queryMultipleSeries(String)}.
      *
      * @param query the query to execute
