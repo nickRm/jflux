@@ -13,6 +13,7 @@ import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
+import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -178,7 +179,7 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
                 () -> jFluxClient.alterRetentionPolicy(retentionPolicyName, databaseName,
                         newDefinition));
     }
@@ -204,7 +205,7 @@ public class JFluxClientTest {
                 databaseName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
                 () -> jFluxClient.dropRetentionPolicy(retentionPolicyName, databaseName));
     }
 
@@ -256,7 +257,7 @@ public class JFluxClientTest {
                 .build();
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
                 () -> jFluxClient.writePoint(databaseName, "some_measurement", retentionPolicyName,
                         point));
     }

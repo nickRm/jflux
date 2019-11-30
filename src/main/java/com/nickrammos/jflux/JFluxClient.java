@@ -14,6 +14,7 @@ import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.AnnotationProcessingException;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
+import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,6 +170,10 @@ public final class JFluxClient implements AutoCloseable {
      * @throws UnknownDatabaseException if the database does not exist
      */
     public boolean retentionPolicyExists(String retentionPolicyName, String databaseName) {
+        if (retentionPolicyName == null) {
+            throw new IllegalArgumentException("Retention policy name cannot be null");
+        }
+
         if (!databaseExists(databaseName)) {
             throw new UnknownDatabaseException(databaseName);
         }
@@ -210,9 +215,9 @@ public final class JFluxClient implements AutoCloseable {
      * @param databaseName        the database the retention policy is defined on
      * @param newDefinition       the new definition for the retention policy
      *
-     * @throws IllegalArgumentException if any of the arguments are {@code null}
-     * @throws UnknownDatabaseException if the database does not exist
-     * @throws IllegalArgumentException if the retention policy does not exist
+     * @throws IllegalArgumentException        if any of the arguments are {@code null}
+     * @throws UnknownDatabaseException        if the database does not exist
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
     public void alterRetentionPolicy(String retentionPolicyName, String databaseName,
             RetentionPolicy newDefinition) {
@@ -221,8 +226,7 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException(
-                    "Unknown retention policy " + retentionPolicyName + " on " + databaseName);
+            throw new UnknownRetentionPolicyException(retentionPolicyName, databaseName);
         }
 
         retentionPolicyManager.alterRetentionPolicy(retentionPolicyName, databaseName,
@@ -235,10 +239,10 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to drop
      * @param databaseName        the database the retention policy is defined on
      *
-     * @throws IllegalArgumentException if {@code retentionPolicy} or {@code databaseName} are
-     *                                  {@code null}
-     * @throws UnknownDatabaseException if the database does not exist
-     * @throws IllegalArgumentException if either the retention policy does not exist
+     * @throws IllegalArgumentException        if {@code retentionPolicy} or {@code databaseName}
+     *                                         are {@code null}
+     * @throws UnknownDatabaseException        if the database does not exist
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
     public void dropRetentionPolicy(String retentionPolicyName, String databaseName) {
         if (!databaseExists(databaseName)) {
@@ -246,8 +250,7 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException(
-                    "Unknown retention policy " + retentionPolicyName + " on " + databaseName);
+            throw new UnknownRetentionPolicyException(retentionPolicyName, databaseName);
         }
 
         retentionPolicyManager.dropRetentionPolicy(retentionPolicyName, databaseName);
@@ -411,8 +414,8 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param points              the points to write
      *
-     * @throws UnknownDatabaseException if the database does not exist
-     * @throws IllegalArgumentException if the retention policy does not exist
+     * @throws UnknownDatabaseException        if the database does not exist
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
     public void writePoints(String databaseName, String measurementName, String retentionPolicyName,
             Collection<Point> points) {
@@ -421,7 +424,7 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+            throw new UnknownRetentionPolicyException(retentionPolicyName, databaseName);
         }
 
         lineProtocolConverter.toLineProtocol(measurementName, points)
