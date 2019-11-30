@@ -4,9 +4,10 @@ import com.nickrammos.jflux.annotation.Field;
 import com.nickrammos.jflux.annotation.Measurement;
 import com.nickrammos.jflux.annotation.Tag;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class NamingStrategyTest {
 
@@ -34,9 +35,10 @@ public class NamingStrategyTest {
         assertThat(measurementName).isEqualTo("annotated_with_no_value_class");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getMeasurementName_shouldThrowException_ifInputIsNull() {
-        namingStrategy.getMeasurementName(null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> namingStrategy.getMeasurementName(null));
     }
 
     @Test
@@ -62,9 +64,9 @@ public class NamingStrategyTest {
         assertThat(fieldName).isEqualTo("non_annotated_field");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getFieldName_shouldThrowException_ifInputIsNull() {
-        namingStrategy.getFieldName(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> namingStrategy.getFieldName(null));
     }
 
     @Test
@@ -90,9 +92,9 @@ public class NamingStrategyTest {
         assertThat(tagName).isEqualTo("non_annotated_tag");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getTagName_shouldThrowException_ifInputIsNull() {
-        namingStrategy.getTagName(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> namingStrategy.getTagName(null));
     }
 
     @Measurement(TEST_MEASUREMENT_NAME)

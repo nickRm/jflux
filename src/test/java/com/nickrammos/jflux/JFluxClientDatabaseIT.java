@@ -3,10 +3,11 @@ package com.nickrammos.jflux;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class JFluxClientDatabaseIT {
 
@@ -15,7 +16,7 @@ public class JFluxClientDatabaseIT {
 
     private JFluxClient jFluxClient;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         jFluxClient = new JFluxClient.Builder(INFLUX_DB_URL).build();
     }
@@ -58,13 +59,15 @@ public class JFluxClientDatabaseIT {
         assertThat(jFluxClient.databaseExists(databaseName)).isFalse();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
-        jFluxClient.createDatabase(DatabaseManager.INTERNAL_DATABASE_NAME);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.createDatabase(DatabaseManager.INTERNAL_DATABASE_NAME));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
-        jFluxClient.dropDatabase("non_existent_db");
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.dropDatabase("non_existent_db"));
     }
 }

@@ -2,13 +2,15 @@ package com.nickrammos.jflux;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+
+@ExtendWith(MockitoExtension.class)
 public class DatabaseManagerTest {
 
     @Mock
@@ -16,28 +18,29 @@ public class DatabaseManagerTest {
 
     private DatabaseManager databaseManager;
 
-    @Before
+    @BeforeEach
     public void setup() {
         databaseManager = new DatabaseManager(httpClient);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void databaseExists_shouldThrowException_ifNameIsNull() {
-        databaseManager.databaseExists(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> databaseManager.databaseExists(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createDatabase_shouldThrowException_ifNameIsNull() {
-        databaseManager.createDatabase(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> databaseManager.createDatabase(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_ifNameIsNull() {
-        databaseManager.dropDatabase(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> databaseManager.dropDatabase(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
-        databaseManager.dropDatabase(DatabaseManager.INTERNAL_DATABASE_NAME);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> databaseManager.dropDatabase(DatabaseManager.INTERNAL_DATABASE_NAME));
     }
 }

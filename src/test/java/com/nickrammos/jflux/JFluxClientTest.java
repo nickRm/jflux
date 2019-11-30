@@ -12,19 +12,21 @@ import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIOException;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class JFluxClientTest {
 
     @Mock
@@ -38,7 +40,7 @@ public class JFluxClientTest {
 
     private JFluxClient jFluxClient;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         ResponseMetadata pingResponse =
                 new ResponseMetadata.Builder().dbBuildType(BuildType.OPEN_SOURCE)
@@ -50,84 +52,72 @@ public class JFluxClientTest {
         jFluxClient = new JFluxClient(httpClient, databaseManager, retentionPolicyManager);
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void ctor_shouldThrowException_ifInfluxDBUnreachable() throws IOException {
         // Given
         doThrow(new IOException()).when(httpClient).ping();
 
         // When
-        new JFluxClient(httpClient, databaseManager, retentionPolicyManager);
-
-        // Then
-        // Expect exception.
+        assertThatIOException().isThrownBy(
+                () -> new JFluxClient(httpClient, databaseManager, retentionPolicyManager));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createDatabase_shouldThrowException_ifDatabaseExists() {
         // Given
         String databaseName = "some_db";
         when(databaseManager.databaseExists(databaseName)).thenReturn(true);
 
         // When
-        jFluxClient.createDatabase(databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.createDatabase(databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        jFluxClient.dropDatabase(databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.dropDatabase(databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getRetentionPolicies_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        jFluxClient.getRetentionPolicies(databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getRetentionPolicies(databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        jFluxClient.getRetentionPolicy("some_rp", databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getRetentionPolicy("some_rp", databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void retentionPolicyExists_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        jFluxClient.retentionPolicyExists("autogen", databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.retentionPolicyExists("autogen", databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -137,13 +127,11 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder("test_rp", Duration.ZERO).build();
 
         // When
-        jFluxClient.createRetentionPolicy(retentionPolicy, databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.createRetentionPolicy(retentionPolicy, databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createRetentionPolicy_shouldThrowException_ifAlreadyExists() {
         // Given
         String databaseName = "some_db";
@@ -156,13 +144,11 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
 
         // When
-        jFluxClient.createRetentionPolicy(retentionPolicy, databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.createRetentionPolicy(retentionPolicy, databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void alterRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -172,13 +158,11 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
 
         // When
-        jFluxClient.alterRetentionPolicy("autogen", databaseName, newDefinition);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.alterRetentionPolicy("autogen", databaseName, newDefinition));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void alterRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
         // Given
         String databaseName = "some_db";
@@ -191,26 +175,23 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
 
         // When
-        jFluxClient.alterRetentionPolicy(retentionPolicyName, databaseName, newDefinition);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.alterRetentionPolicy(retentionPolicyName, databaseName,
+                        newDefinition));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        jFluxClient.dropRetentionPolicy("some_rp", databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.dropRetentionPolicy("some_rp", databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
         // Given
         String databaseName = "some_db";
@@ -220,28 +201,30 @@ public class JFluxClientTest {
                 databaseName)).thenReturn(false);
 
         // When
-        jFluxClient.dropRetentionPolicy(retentionPolicyName, databaseName);
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.dropRetentionPolicy(retentionPolicyName, databaseName));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void write_shouldThrowException_ifInputIsNull() {
-        jFluxClient.write("some_db", (Object) null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.write("some_db", (Object) null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void writeToRetentionPolicy_shouldThrowException_ifInputIsNull() {
-        jFluxClient.write("some_db", "some_rp", (Object) null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.write("some_db", "some_rp", (Object) null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void writePoint_shouldThrowException_ifDatabaseNameIsNull() {
-        jFluxClient.writePoint(null, "some_measurement", new Point.Builder().build());
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.writePoint(null, "some_measurement",
+                        new Point.Builder().build()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void writePoint_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -252,13 +235,11 @@ public class JFluxClientTest {
                 .build();
 
         // When
-        jFluxClient.writePoint(databaseName, "some_measurement", point);
-
-        // Then
-        // Exception should be thrown.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.writePoint(databaseName, "some_measurement", point));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void writePointToRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
         // Given
         String databaseName = "some_db";
@@ -272,33 +253,32 @@ public class JFluxClientTest {
                 .build();
 
         // When
-        jFluxClient.writePoint(databaseName, "some_measurement", retentionPolicyName, point);
-
-        // Then
-        // Exception should be thrown.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.writePoint(databaseName, "some_measurement", retentionPolicyName,
+                        point));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getAllPoints_shouldThrowException_ifDatabaseNameIsNull() {
-        jFluxClient.getAllPoints(null, "some_measurement");
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints(null, "some_measurement"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getAllPoints_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String dbName = "some_db";
         when(databaseManager.databaseExists(dbName)).thenReturn(false);
 
         // When
-        jFluxClient.getAllPoints(dbName, "some_measurement");
-
-        // Then
-        // Expect exception.
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints(dbName, "some_measurement"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getAllPoints_shouldThrowException_ifMeasurementNameIsNull() {
-        jFluxClient.getAllPoints("db_name", null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints("db_name", null));
     }
 
     @Test

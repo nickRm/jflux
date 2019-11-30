@@ -10,23 +10,26 @@ import com.nickrammos.jflux.exception.DuplicateAnnotatedMembersException;
 import com.nickrammos.jflux.exception.InvalidAnnotatedType;
 import com.nickrammos.jflux.exception.MissingAnnotatedMemberException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class AnnotationBasedPointConverterTest {
 
     private final AnnotationBasedPointConverter converter = new AnnotationBasedPointConverter(
             new NamingStrategy());
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void ctor_shouldThrowException_ifNamingStrategyIsNull() {
-        new AnnotationBasedPointConverter(null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> new AnnotationBasedPointConverter(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void toPoint_shouldThrowException_ifInputIsNull() {
-        converter.toPoint(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> converter.toPoint(null));
     }
 
     @Test
@@ -66,7 +69,7 @@ public class AnnotationBasedPointConverterTest {
         assertThat(point.getTimestamp()).isNull();
     }
 
-    @Test(expected = DuplicateAnnotatedMembersException.class)
+    @Test
     public void toPoint_shouldThrowException_ifMoreThanOneTimestampFieldsFound() {
         Object o = new Object() {
             @Timestamp
@@ -78,10 +81,11 @@ public class AnnotationBasedPointConverterTest {
             @Field
             private int count;
         };
-        converter.toPoint(o);
+        assertThatExceptionOfType(DuplicateAnnotatedMembersException.class).isThrownBy(() ->
+                converter.toPoint(o));
     }
 
-    @Test(expected = InvalidAnnotatedType.class)
+    @Test
     public void toPoint_shouldThrowException_ifTimestampFieldTypeIsNotInstant() {
         Object o = new Object() {
             @Timestamp
@@ -90,13 +94,15 @@ public class AnnotationBasedPointConverterTest {
             @Field
             private int count;
         };
-        converter.toPoint(o);
+        assertThatExceptionOfType(InvalidAnnotatedType.class).isThrownBy(() ->
+                converter.toPoint(o));
     }
 
-    @Test(expected = MissingAnnotatedMemberException.class)
+    @Test
     public void toPoint_shouldThrowException_ifNoFieldsFound() {
         Object o = new Object();
-        converter.toPoint(o);
+        assertThatExceptionOfType(MissingAnnotatedMemberException.class).isThrownBy(
+                () -> converter.toPoint(o));
     }
 
     @Test
@@ -116,12 +122,13 @@ public class AnnotationBasedPointConverterTest {
         assertThat(point.getTags()).isEmpty();
     }
 
-    @Test(expected = InvalidAnnotatedType.class)
+    @Test
     public void toPoint_shouldThrowException_ifFieldIsNotCorrectType() {
         Object o = new Object() {
             @Field
             private String text = "some text";
         };
-        converter.toPoint(o);
+        assertThatExceptionOfType(InvalidAnnotatedType.class).isThrownBy(
+                () -> converter.toPoint(o));
     }
 }

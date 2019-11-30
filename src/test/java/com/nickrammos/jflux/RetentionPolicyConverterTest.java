@@ -7,9 +7,10 @@ import java.util.Map;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class RetentionPolicyConverterTest {
 
@@ -41,8 +42,9 @@ public class RetentionPolicyConverterTest {
         assertThat(actualRetentionPolicy).isEqualTo(expectedRetentionPolicy);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void parsePoint_shouldThrowException_ifInputIsNull() {
-        new RetentionPolicyConverter().parsePoint(null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> new RetentionPolicyConverter().parsePoint(null));
     }
 }
