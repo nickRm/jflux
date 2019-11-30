@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
+import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.AnnotationProcessingException;
@@ -411,6 +412,31 @@ public final class JFluxClient implements AutoCloseable {
         lineProtocolConverter.toLineProtocol(measurementName, points)
                 .forEach(lineProtocol -> apiCaller.callApi(
                         () -> httpClient.write(databaseName, retentionPolicyName, lineProtocol)));
+    }
+
+    /**
+     * Retrieves all points for the specified measurement.
+     *
+     * @param databaseName    the database where the measurement is found, not {@code null}
+     * @param measurementName the measurement to query, not {@code null}
+     *
+     * @return the retrieved points, or an empty list if no results or measurement does not exist
+     *
+     * @throws IllegalArgumentException if the database or measurement name is {@code null}
+     * @throws IllegalArgumentException if the database does not exist
+     */
+    public List<Point> getAllPoints(String databaseName, String measurementName) {
+        if (measurementName == null) {
+            throw new IllegalArgumentException("Measurement name cannot be blank");
+        }
+
+        if (!databaseManager.databaseExists(databaseName)) {
+            throw new IllegalArgumentException("Unknown database " + databaseName);
+        }
+
+        String query = "SELECT * FROM \"" + databaseName + "\"..\"" + measurementName + '"';
+        Measurement callResult = apiCaller.callApi(() -> httpClient.query(query));
+        return callResult == null ? Collections.emptyList() : callResult.getPoints();
     }
 
     @Override
