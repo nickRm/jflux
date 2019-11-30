@@ -11,6 +11,7 @@ import com.nickrammos.jflux.domain.BuildType;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
+import com.nickrammos.jflux.exception.UnknownDatabaseException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -80,7 +82,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.dropDatabase(databaseName));
     }
 
@@ -91,7 +93,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.getRetentionPolicies(databaseName));
     }
 
@@ -102,7 +104,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.getRetentionPolicy("some_rp", databaseName));
     }
 
@@ -113,7 +115,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.retentionPolicyExists("autogen", databaseName));
     }
 
@@ -127,7 +129,7 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder("test_rp", Duration.ZERO).build();
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.createRetentionPolicy(retentionPolicy, databaseName));
     }
 
@@ -158,7 +160,7 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder("non_existent_rp", Duration.ZERO).build();
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.alterRetentionPolicy("autogen", databaseName, newDefinition));
     }
 
@@ -187,7 +189,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(databaseName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.dropRetentionPolicy("some_rp", databaseName));
     }
 
@@ -235,7 +237,7 @@ public class JFluxClientTest {
                 .build();
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.writePoint(databaseName, "some_measurement", point));
     }
 
@@ -271,7 +273,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(dbName)).thenReturn(false);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.getAllPoints(dbName, "some_measurement"));
     }
 
