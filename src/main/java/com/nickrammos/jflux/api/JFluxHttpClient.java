@@ -27,6 +27,7 @@ import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
+import com.nickrammos.jflux.exception.IllegalStatementException;
 import com.nickrammos.jflux.exception.InfluxClientException;
 
 import okhttp3.MediaType;
@@ -111,13 +112,14 @@ public final class JFluxHttpClient implements AutoCloseable {
      *
      * @return the query result, or {@code null} if no results
      *
-     * @throws IOException if query execution fails
+     * @throws IllegalStatementException if the query format is invalid
+     * @throws IOException               if query execution fails
      * @see #queryMultipleSeries(String)
      * @see #batchQuery(String)
      */
     public Measurement query(String query) throws IOException {
         if (MULTI_SERIES_PATTERN.matcher(query).matches()) {
-            throw new IllegalArgumentException("Query cannot span multiple measurements");
+            throw new IllegalStatementException("Query cannot span multiple measurements");
         }
 
         List<Measurement> measurements = queryMultipleSeries(query).getResults();
@@ -140,13 +142,14 @@ public final class JFluxHttpClient implements AutoCloseable {
      *
      * @return the query result
      *
-     * @throws IOException if query execution fails
+     * @throws IllegalStatementException if the query format is invalid
+     * @throws IOException               if query execution fails
      * @see #query(String)
      * @see #batchQuery(String)
      */
     public QueryResult queryMultipleSeries(String query) throws IOException {
         if (query.contains(";")) {
-            throw new IllegalArgumentException("Query cannot contain multiple statements");
+            throw new IllegalStatementException("Query cannot contain multiple statements");
         }
 
         return batchQuery(query).getResults().get(0);
@@ -169,13 +172,14 @@ public final class JFluxHttpClient implements AutoCloseable {
      *
      * @return the query result
      *
-     * @throws IOException if query execution fails
+     * @throws IllegalStatementException if the query format is invalid
+     * @throws IOException               if query execution fails
      * @see #query(String)
      * @see #queryMultipleSeries(String)
      */
     public ApiResponse batchQuery(String query) throws IOException {
         if (SELECT_INTO_PATTERN.matcher(query).matches()) {
-            throw new IllegalArgumentException("Cannot execute 'SELECT INTO' as query");
+            throw new IllegalStatementException("Cannot execute 'SELECT INTO' as query");
         }
 
         ApiResponse response = callApi(service::query, query);
