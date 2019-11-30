@@ -10,6 +10,7 @@ import com.nickrammos.jflux.domain.Point;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class LineProtocolConverterTest {
 
@@ -76,13 +77,15 @@ public class LineProtocolConverterTest {
         assertThat(lineProtocols.size()).isEqualTo(2);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void toLineProtocol_shouldThrowException_ifMeasurementNameIsNull() {
-        lineProtocolConverter.toLineProtocol(null, Collections.emptyList());
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> lineProtocolConverter.toLineProtocol(null, Collections.emptyList()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void toLineProtocol_shouldThrowException_ifMeasurementNameIsEmpty() {
-        lineProtocolConverter.toLineProtocol("", Collections.emptyList());
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> lineProtocolConverter.toLineProtocol("", Collections.emptyList()));
     }
 }

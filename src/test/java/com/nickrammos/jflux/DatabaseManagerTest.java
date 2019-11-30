@@ -8,6 +8,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+
 @RunWith(MockitoJUnitRunner.class)
 public class DatabaseManagerTest {
 
@@ -21,23 +23,24 @@ public class DatabaseManagerTest {
         databaseManager = new DatabaseManager(httpClient);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void databaseExists_shouldThrowException_ifNameIsNull() {
-        databaseManager.databaseExists(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> databaseManager.databaseExists(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createDatabase_shouldThrowException_ifNameIsNull() {
-        databaseManager.createDatabase(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> databaseManager.createDatabase(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_ifNameIsNull() {
-        databaseManager.dropDatabase(null);
+        assertThatIllegalArgumentException().isThrownBy(() -> databaseManager.dropDatabase(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_whenTryingToDropInternalDatabase() {
-        databaseManager.dropDatabase(DatabaseManager.INTERNAL_DATABASE_NAME);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> databaseManager.dropDatabase(DatabaseManager.INTERNAL_DATABASE_NAME));
     }
 }

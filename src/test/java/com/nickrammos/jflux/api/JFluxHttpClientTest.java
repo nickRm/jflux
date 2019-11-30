@@ -23,6 +23,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -103,22 +104,22 @@ public class JFluxHttpClientTest {
         assertThat(measurement).isNull();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void query_shouldThrowException_ifQueriesMultipleMeasurements() throws IOException {
+    @Test
+    public void query_shouldThrowException_ifQueriesMultipleMeasurements() {
         String query = "SELECT * FROM measurement_1, measurement_2";
-        client.query(query);
+        assertThatIllegalArgumentException().isThrownBy(() -> client.query(query));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void query_shouldThrowException_ifQueryIsMultiStatement() throws IOException {
+    @Test
+    public void query_shouldThrowException_ifQueryIsMultiStatement() {
         String query = "SELECT * FROM measurement_1; SELECT * FROM measurement_2";
-        client.query(query);
+        assertThatIllegalArgumentException().isThrownBy(() -> client.query(query));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void query_shouldThrowException_ifQueryIsSelectInto() throws IOException {
+    @Test
+    public void query_shouldThrowException_ifQueryIsSelectInto() {
         String query = "SELECT * INTO measurement_1 FROM measurement_2";
-        client.query(query);
+        assertThatIllegalArgumentException().isThrownBy(() -> client.query(query));
     }
 
     @Test
@@ -143,16 +144,16 @@ public class JFluxHttpClientTest {
         assertThat(result).isEqualTo(response.getResults().get(0));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void multiSeriesQuery_shouldThrowException_ifQueryIsMultiStatement() throws IOException {
+    @Test
+    public void multiSeriesQuery_shouldThrowException_ifQueryIsMultiStatement() {
         String query = "SELECT * FROM measurement_1; SELECT * FROM measurement_2";
-        client.queryMultipleSeries(query);
+        assertThatIllegalArgumentException().isThrownBy(() -> client.queryMultipleSeries(query));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void multiSeriesQuery_shouldThrowException_ifQueryIsSelectInto() throws IOException {
+    @Test
+    public void multiSeriesQuery_shouldThrowException_ifQueryIsSelectInto() {
         String query = "SELECT * INTO measurement_1 FROM measurement_2";
-        client.queryMultipleSeries(query);
+        assertThatIllegalArgumentException().isThrownBy(() -> client.queryMultipleSeries(query));
     }
 
     @Test
@@ -177,10 +178,10 @@ public class JFluxHttpClientTest {
         assertThat(actualResponse).isEqualTo(response);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void multiResultQuery_shouldThrowException_ifQueryIsSelectInto() throws IOException {
+    @Test
+    public void multiResultQuery_shouldThrowException_ifQueryIsSelectInto() {
         String query = "SELECT * INTO measurement_1 FROM measurement_2";
-        client.batchQuery(query);
+        assertThatIllegalArgumentException().isThrownBy(() -> client.batchQuery(query));
     }
 
     private static ApiResponse createResponse() {

@@ -3,6 +3,7 @@ package com.nickrammos.jflux.domain;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class BuildTypeTest {
 
@@ -14,8 +15,9 @@ public class BuildTypeTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void fromIdentifier_shouldThrowException_ifIdentifierIsInvalid() {
-        BuildType.fromIdentifier("invalid-identifier");
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> BuildType.fromIdentifier("invalid-identifier"));
     }
 }

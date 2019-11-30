@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class JFluxClientDatabaseIT {
 
@@ -58,13 +59,15 @@ public class JFluxClientDatabaseIT {
         assertThat(jFluxClient.databaseExists(databaseName)).isFalse();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
-        jFluxClient.createDatabase(DatabaseManager.INTERNAL_DATABASE_NAME);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.createDatabase(DatabaseManager.INTERNAL_DATABASE_NAME));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
-        jFluxClient.dropDatabase("non_existent_db");
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.dropDatabase("non_existent_db"));
     }
 }

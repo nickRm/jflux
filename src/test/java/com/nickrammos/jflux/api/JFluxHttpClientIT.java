@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class JFluxHttpClientIT {
 
@@ -61,20 +62,23 @@ public class JFluxHttpClientIT {
         assertThat(measurement).isNull();
     }
 
-    @Test(expected = InfluxClientException.class)
-    public void testSyntaxError() throws IOException {
-        client.query("SHOW DATABASE");
+    @Test
+    public void testSyntaxError() {
+        assertThatExceptionOfType(InfluxClientException.class).isThrownBy(
+                () -> client.query("SHOW DATABASE"));
     }
 
-    @Test(expected = InfluxClientException.class)
-    public void testQueryError() throws IOException {
-        client.query("SHOW RETENTION POLICIES ON non_existent_db");
+    @Test
+    public void testQueryError() {
+        assertThatExceptionOfType(InfluxClientException.class).isThrownBy(
+                () -> client.query("SHOW RETENTION POLICIES ON non_existent_db"));
     }
 
-    @Test(expected = InfluxClientException.class)
-    public void testStatementWithError() throws IOException {
+    @Test
+    public void testStatementWithError() {
         // Trying to execute incomplete statement.
-        client.execute("CREATE RETENTION POLICY");
+        assertThatExceptionOfType(InfluxClientException.class).isThrownBy(
+                () -> client.execute("CREATE RETENTION POLICY"));
     }
 
     @Test
@@ -129,8 +133,9 @@ public class JFluxHttpClientIT {
         assertThat(result.getPoints()).hasSize(1);
     }
 
-    @Test(expected = InfluxClientException.class)
-    public void write_throwsException_ifLineProtocolIsInvalid() throws IOException {
-        client.write(DB_NAME, "my_measurement,tag=1,field=1");
+    @Test
+    public void write_throwsException_ifLineProtocolIsInvalid() {
+        assertThatExceptionOfType(InfluxClientException.class).isThrownBy(
+                () -> client.write(DB_NAME, "my_measurement,tag=1,field=1"));
     }
 }

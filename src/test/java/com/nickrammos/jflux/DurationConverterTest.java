@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 public class DurationConverterTest {
 
@@ -31,14 +32,16 @@ public class DurationConverterTest {
         assertThat(actual).isEqualTo(expected);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void parseDuration_shouldThrowException_ifLiteralIsNull() {
-        durationConverter.parseDuration(null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> durationConverter.parseDuration(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void parseDuration_shouldThrowException_ifLiteralIsEmpty() {
-        durationConverter.parseDuration("");
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> durationConverter.parseDuration(""));
     }
 
     @Test
@@ -62,13 +65,15 @@ public class DurationConverterTest {
         assertThat(literal).isEqualTo("0s");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void toLiteral_shouldThrowException_ifDurationIsNull() {
-        durationConverter.toLiteral(null);
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> durationConverter.toLiteral(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void toLiteral_shouldThrowException_ifDurationIsNegative() {
-        durationConverter.toLiteral(Duration.ofMillis(-1));
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> durationConverter.toLiteral(Duration.ofMillis(-1)));
     }
 }
