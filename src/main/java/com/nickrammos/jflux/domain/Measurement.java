@@ -71,16 +71,35 @@ public final class Measurement {
         private String name;
         private List<Point> points = Collections.emptyList();
 
+        /**
+         * Sets the name for the measurement to be constructed.
+         *
+         * @param name the measurement name
+         *
+         * @return this builder
+         */
         public Builder name(String name) {
             this.name = name;
             return this;
         }
 
+        /**
+         * Sets the points for the measurement to be constructed.
+         *
+         * @param points the measurement's points
+         *
+         * @return this builder
+         */
         public Builder points(List<Point> points) {
             this.points = points;
             return this;
         }
 
+        /**
+         * Creates a new {@link Measurement} instance using the values in this builder.
+         *
+         * @return the constructed {@link Measurement}
+         */
         public Measurement build() {
             return new Measurement(this);
         }

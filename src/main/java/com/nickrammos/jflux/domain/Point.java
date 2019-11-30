@@ -86,21 +86,47 @@ public final class Point {
         private Map<String, String> tags = Collections.emptyMap();
         private Map<String, Object> fields = Collections.emptyMap();
 
+        /**
+         * Sets the timestamp for the point to be constructed.
+         *
+         * @param timestamp the point's timestamp
+         *
+         * @return this builder
+         */
         public Builder timestamp(Instant timestamp) {
             this.timestamp = timestamp;
             return this;
         }
 
+        /**
+         * Sets the tags for the point to be constructed.
+         *
+         * @param tags the point's tags
+         *
+         * @return this builder
+         */
         public Builder tags(Map<String, String> tags) {
             this.tags = tags;
             return this;
         }
 
+        /**
+         * Sets the fields for the point to be constructed.
+         *
+         * @param fields the point's fields
+         *
+         * @return this builder
+         */
         public Builder fields(Map<String, Object> fields) {
             this.fields = fields;
             return this;
         }
 
+        /**
+         * Builds a new {@link Point} instance using the values in this builder.
+         *
+         * @return the constructed {@link Point}
+         */
         public Point build() {
             return new Point(this);
         }

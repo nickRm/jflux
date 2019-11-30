@@ -95,21 +95,47 @@ public final class QueryResult {
         private String error;
         private List<Measurement> results = Collections.emptyList();
 
+        /**
+         * Sets the statement ID for the query result to be constructed.
+         *
+         * @param statementId the statement ID
+         *
+         * @return this builder
+         */
         public Builder statementId(int statementId) {
             this.statementId = statementId;
             return this;
         }
 
+        /**
+         * Sets the error message of the query result to be constructed.
+         *
+         * @param error the error message for the result, {@code null} means no error
+         *
+         * @return this builder
+         */
         public Builder error(String error) {
             this.error = error;
             return this;
         }
 
+        /**
+         * Sets the results of the query.
+         *
+         * @param results the query results
+         *
+         * @return this builder
+         */
         public Builder series(List<Measurement> results) {
             this.results = results;
             return this;
         }
 
+        /**
+         * Builds a new instance of {@link QueryResult} using the values set in this builder.
+         *
+         * @return the constructed {@link QueryResult}
+         */
         public QueryResult build() {
             return new QueryResult(this);
         }
