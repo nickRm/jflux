@@ -24,7 +24,7 @@ final class AnnotationBasedPointConverter {
     /**
      * Constructs a new converter with the specified naming strategy.
      *
-     * @param namingStrategy the naming strategey to use, not {@code null}
+     * @param namingStrategy the naming strategy to use, not {@code null}
      *
      * @throws IllegalArgumentException if {@code namingStrategy} is {@code null}
      */
@@ -111,9 +111,7 @@ final class AnnotationBasedPointConverter {
         }
 
         if (type.isAssignableFrom(value.getClass())) {
-            // False positive, checked right above.
-            //noinspection unchecked
-            return (T) value;
+            return type.cast(value);
         }
         else {
             throw new InvalidAnnotatedType(field, type);
