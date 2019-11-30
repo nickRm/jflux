@@ -13,6 +13,7 @@ import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.AnnotationProcessingException;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
 
@@ -186,10 +187,10 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicy the retention policy to create
      * @param databaseName    the database to create the retention policy on
      *
-     * @throws IllegalArgumentException if {@code retentionPolicy} or {@code databaseName} is {@code
-     *                                  null}
-     * @throws UnknownDatabaseException if the database does not exist
-     * @throws IllegalArgumentException if the retention policy already exists
+     * @throws IllegalArgumentException              if {@code retentionPolicy} or {@code
+     *                                               databaseName} is {@code null}
+     * @throws UnknownDatabaseException              if the database does not exist
+     * @throws RetentionPolicyAlreadyExistsException if the retention policy already exists
      */
     public void createRetentionPolicy(RetentionPolicy retentionPolicy, String databaseName) {
         if (!databaseExists(databaseName)) {
@@ -197,9 +198,8 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         if (retentionPolicyExists(retentionPolicy.getName(), databaseName)) {
-            throw new IllegalArgumentException(
-                    "Retention policy " + retentionPolicy.getName() + " already exists on "
-                            + databaseName);
+            throw new RetentionPolicyAlreadyExistsException(retentionPolicy.getName(),
+                    databaseName);
         }
 
         retentionPolicyManager.createRetentionPolicy(retentionPolicy, databaseName);

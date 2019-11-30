@@ -12,6 +12,7 @@ import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
 
@@ -148,7 +149,7 @@ public class JFluxClientTest {
                 new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(RetentionPolicyAlreadyExistsException.class).isThrownBy(
                 () -> jFluxClient.createRetentionPolicy(retentionPolicy, databaseName));
     }
 
