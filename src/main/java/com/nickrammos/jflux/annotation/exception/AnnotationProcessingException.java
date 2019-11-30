@@ -1,4 +1,4 @@
-package com.nickrammos.jflux.exception;
+package com.nickrammos.jflux.annotation.exception;
 
 /**
  * Thrown to indicate that something went wrong when processing an annotated class or object.

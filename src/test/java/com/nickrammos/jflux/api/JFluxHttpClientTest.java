@@ -5,12 +5,12 @@ import java.util.Collections;
 import java.util.List;
 
 import com.nickrammos.jflux.api.converter.ApiResponseConverter;
+import com.nickrammos.jflux.api.exception.IllegalStatementException;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
-import com.nickrammos.jflux.exception.IllegalStatementException;
 
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;

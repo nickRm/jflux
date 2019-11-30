@@ -2,9 +2,9 @@ package com.nickrammos.jflux.api;
 
 import java.io.IOException;
 
+import com.nickrammos.jflux.api.exception.InfluxClientException;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
-import com.nickrammos.jflux.exception.InfluxClientException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

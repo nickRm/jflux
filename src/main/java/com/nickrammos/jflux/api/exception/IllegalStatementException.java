@@ -1,4 +1,4 @@
-package com.nickrammos.jflux.exception;
+package com.nickrammos.jflux.api.exception;
 
 /**
  * Thrown to indicate that an InfluxQL statement cannot be executed because it has invalid format

@@ -6,12 +6,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.nickrammos.jflux.annotation.exception.AnnotationProcessingException;
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
-import com.nickrammos.jflux.exception.AnnotationProcessingException;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
 import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
