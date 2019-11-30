@@ -11,6 +11,7 @@ import com.nickrammos.jflux.domain.BuildType;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
+import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ public class JFluxClientTest {
         when(databaseManager.databaseExists(databaseName)).thenReturn(true);
 
         // When
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(DatabaseAlreadyExistsException.class).isThrownBy(
                 () -> jFluxClient.createDatabase(databaseName));
     }
 

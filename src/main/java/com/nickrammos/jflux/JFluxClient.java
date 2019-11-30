@@ -12,6 +12,7 @@ import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.AnnotationProcessingException;
+import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 
 import org.slf4j.Logger;
@@ -94,12 +95,12 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @param databaseName the database to create, not {@code null}
      *
-     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
-     * @throws IllegalArgumentException if the database already exists
+     * @throws IllegalArgumentException       if {@code databaseName} is {@code null}
+     * @throws DatabaseAlreadyExistsException if the database already exists
      */
     public void createDatabase(String databaseName) {
         if (databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Database " + databaseName + " already exists");
+            throw new DatabaseAlreadyExistsException(databaseName);
         }
         databaseManager.createDatabase(databaseName);
     }
