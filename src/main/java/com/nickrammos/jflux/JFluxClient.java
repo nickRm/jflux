@@ -6,12 +6,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.nickrammos.jflux.annotation.exception.AnnotationProcessingException;
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
-import com.nickrammos.jflux.exception.AnnotationProcessingException;
+import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
+import com.nickrammos.jflux.exception.UnknownDatabaseException;
+import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,12 +97,12 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @param databaseName the database to create, not {@code null}
      *
-     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
-     * @throws IllegalArgumentException if the database already exists
+     * @throws IllegalArgumentException       if {@code databaseName} is {@code null}
+     * @throws DatabaseAlreadyExistsException if the database already exists
      */
     public void createDatabase(String databaseName) {
         if (databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Database " + databaseName + " already exists");
+            throw new DatabaseAlreadyExistsException(databaseName);
         }
         databaseManager.createDatabase(databaseName);
     }
@@ -108,13 +112,13 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @param databaseName the database to drop, not {@code null}
      *
-     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
-     * @throws IllegalArgumentException if the database does not exist
      * @throws IllegalArgumentException if trying to drop the internal InfluxDB database
+     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public void dropDatabase(String databaseName) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Database " + databaseName + " already exists");
+            throw new UnknownDatabaseException(databaseName);
         }
         databaseManager.dropDatabase(databaseName);
     }
@@ -126,11 +130,11 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @return the database's retention policies
      *
-     * @throws IllegalArgumentException if the database does not exist
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public List<RetentionPolicy> getRetentionPolicies(String databaseName) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.getRetentionPolicies(databaseName);
     }
@@ -145,11 +149,11 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @throws IllegalArgumentException if {@code retentionPolicyName} or {@code databaseName} are
      *                                  {@code null}
-     * @throws IllegalArgumentException if the database does not exist
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public RetentionPolicy getRetentionPolicy(String retentionPolicyName, String databaseName) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.getRetentionPolicy(retentionPolicyName, databaseName);
     }
@@ -164,11 +168,15 @@ public final class JFluxClient implements AutoCloseable {
      * @return {@code true} if the retention policy exists, {@code false} otherwise
      *
      * @throws IllegalArgumentException if the retention policy or database names are null
-     * @throws IllegalArgumentException if the database does not exist
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public boolean retentionPolicyExists(String retentionPolicyName, String databaseName) {
+        if (retentionPolicyName == null) {
+            throw new IllegalArgumentException("Retention policy name cannot be null");
+        }
+
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.retentionPolicyExists(retentionPolicyName, databaseName);
     }
@@ -179,20 +187,19 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicy the retention policy to create
      * @param databaseName    the database to create the retention policy on
      *
-     * @throws IllegalArgumentException if {@code retentionPolicy} or {@code databaseName} is {@code
-     *                                  null}
-     * @throws IllegalArgumentException if the database does not exist
-     * @throws IllegalArgumentException if the retention policy already exists
+     * @throws IllegalArgumentException              if {@code retentionPolicy} or {@code
+     *                                               databaseName} is {@code null}
+     * @throws UnknownDatabaseException              if the database does not exist
+     * @throws RetentionPolicyAlreadyExistsException if the retention policy already exists
      */
     public void createRetentionPolicy(RetentionPolicy retentionPolicy, String databaseName) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
 
         if (retentionPolicyExists(retentionPolicy.getName(), databaseName)) {
-            throw new IllegalArgumentException(
-                    "Retention policy " + retentionPolicy.getName() + " already exists on "
-                            + databaseName);
+            throw new RetentionPolicyAlreadyExistsException(retentionPolicy.getName(),
+                    databaseName);
         }
 
         retentionPolicyManager.createRetentionPolicy(retentionPolicy, databaseName);
@@ -208,19 +215,18 @@ public final class JFluxClient implements AutoCloseable {
      * @param databaseName        the database the retention policy is defined on
      * @param newDefinition       the new definition for the retention policy
      *
-     * @throws IllegalArgumentException if any of the arguments are {@code null}
-     * @throws IllegalArgumentException if the database does not exist
-     * @throws IllegalArgumentException if the retention policy does not exist
+     * @throws IllegalArgumentException        if any of the arguments are {@code null}
+     * @throws UnknownDatabaseException        if the database does not exist
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
     public void alterRetentionPolicy(String retentionPolicyName, String databaseName,
             RetentionPolicy newDefinition) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
 
         if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException(
-                    "Unknown retention policy " + retentionPolicyName + " on " + databaseName);
+            throw new UnknownRetentionPolicyException(retentionPolicyName, databaseName);
         }
 
         retentionPolicyManager.alterRetentionPolicy(retentionPolicyName, databaseName,
@@ -233,18 +239,18 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to drop
      * @param databaseName        the database the retention policy is defined on
      *
-     * @throws IllegalArgumentException if {@code retentionPolicy} or {@code databaseName} are
-     *                                  {@code null}
-     * @throws IllegalArgumentException if either the retention policy or the database do not exist
+     * @throws IllegalArgumentException        if {@code retentionPolicy} or {@code databaseName}
+     *                                         are {@code null}
+     * @throws UnknownDatabaseException        if the database does not exist
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
     public void dropRetentionPolicy(String retentionPolicyName, String databaseName) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
 
         if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException(
-                    "Unknown retention policy " + retentionPolicyName + " on " + databaseName);
+            throw new UnknownRetentionPolicyException(retentionPolicyName, databaseName);
         }
 
         retentionPolicyManager.dropRetentionPolicy(retentionPolicyName, databaseName);
@@ -258,7 +264,7 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @throws AnnotationProcessingException if the data object is not correctly annotated
      * @throws IllegalArgumentException      if the input data is {@code null}
-     * @throws IllegalArgumentException      if the database does not exist
+     * @throws UnknownDatabaseException      if the database does not exist
      * @see #writePoint(String, String, Point)
      */
     public void write(String databaseName, Object data) {
@@ -278,7 +284,7 @@ public final class JFluxClient implements AutoCloseable {
      * @param data         the data to write
      *
      * @throws AnnotationProcessingException if the data objects are not correctly annotated
-     * @throws IllegalArgumentException      if the database does not exist
+     * @throws UnknownDatabaseException      if the database does not exist
      * @see #writePoints(String, String, Collection)
      */
     public void write(String databaseName, Collection<?> data) {
@@ -302,7 +308,7 @@ public final class JFluxClient implements AutoCloseable {
      * @param data                the data to write, not {@code null}
      *
      * @throws AnnotationProcessingException if the data object is not correctly annotated
-     * @throws IllegalArgumentException      if the database does not exist
+     * @throws UnknownDatabaseException      if the database does not exist
      * @throws IllegalArgumentException      if the retention policy does not exist
      * @see #writePoint(String, String, String, Point)
      */
@@ -324,7 +330,7 @@ public final class JFluxClient implements AutoCloseable {
      * @param data                the data to write
      *
      * @throws AnnotationProcessingException if the data objects are not correctly annotated
-     * @throws IllegalArgumentException      if the database does not exist
+     * @throws UnknownDatabaseException      if the database does not exist
      * @throws IllegalArgumentException      if the retention policy does not exist
      * @see #writePoints(String, String, String, Collection)
      */
@@ -348,7 +354,8 @@ public final class JFluxClient implements AutoCloseable {
      * @param measurementName the measurement to write to, not {@code null}
      * @param point           the point to write
      *
-     * @throws IllegalArgumentException if the database does not exist
+     * @throws IllegalArgumentException if the database or measurement name is {@code null}
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public void writePoint(String databaseName, String measurementName, Point point) {
         writePoints(databaseName, measurementName, Collections.singleton(point));
@@ -361,11 +368,20 @@ public final class JFluxClient implements AutoCloseable {
      * @param measurementName the measurement to write to, not {@code null}
      * @param points          the points to write
      *
-     * @throws IllegalArgumentException if the database does not exist
+     * @throws IllegalArgumentException if the database or measurement name is {@code null}
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public void writePoints(String databaseName, String measurementName, Collection<Point> points) {
+        if (databaseName == null) {
+            throw new IllegalArgumentException("Database name cannot be null");
+        }
+
+        if (measurementName == null) {
+            throw new IllegalArgumentException("Measurement name cannot be null");
+        }
+
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
 
         lineProtocolConverter.toLineProtocol(measurementName, points)
@@ -381,7 +397,8 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param point               the point to write
      *
-     * @throws IllegalArgumentException if the database or retention policy does not exist
+     * @throws UnknownDatabaseException if the database does not exist
+     * @throws IllegalArgumentException if the retention policy does not exist
      */
     public void writePoint(String databaseName, String measurementName, String retentionPolicyName,
             Point point) {
@@ -397,16 +414,17 @@ public final class JFluxClient implements AutoCloseable {
      * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param points              the points to write
      *
-     * @throws IllegalArgumentException if the database or retention policy does not exist
+     * @throws UnknownDatabaseException        if the database does not exist
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
     public void writePoints(String databaseName, String measurementName, String retentionPolicyName,
             Collection<Point> points) {
         if (!databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
 
         if (!retentionPolicyExists(retentionPolicyName, databaseName)) {
-            throw new IllegalArgumentException("Unknown retention policy " + retentionPolicyName);
+            throw new UnknownRetentionPolicyException(retentionPolicyName, databaseName);
         }
 
         lineProtocolConverter.toLineProtocol(measurementName, points)
@@ -423,15 +441,19 @@ public final class JFluxClient implements AutoCloseable {
      * @return the retrieved points, or an empty list if no results or measurement does not exist
      *
      * @throws IllegalArgumentException if the database or measurement name is {@code null}
-     * @throws IllegalArgumentException if the database does not exist
+     * @throws UnknownDatabaseException if the database does not exist
      */
     public List<Point> getAllPoints(String databaseName, String measurementName) {
         if (measurementName == null) {
             throw new IllegalArgumentException("Measurement name cannot be blank");
         }
 
+        if (databaseName == null) {
+            throw new IllegalArgumentException("Database name cannot be null");
+        }
+
         if (!databaseManager.databaseExists(databaseName)) {
-            throw new IllegalArgumentException("Unknown database " + databaseName);
+            throw new UnknownDatabaseException(databaseName);
         }
 
         String query = "SELECT * FROM \"" + databaseName + "\"..\"" + measurementName + '"';

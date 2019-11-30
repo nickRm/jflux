@@ -8,11 +8,11 @@ import java.util.Map;
 import com.nickrammos.jflux.annotation.Field;
 import com.nickrammos.jflux.annotation.Tag;
 import com.nickrammos.jflux.annotation.Timestamp;
+import com.nickrammos.jflux.annotation.exception.AnnotationProcessingException;
+import com.nickrammos.jflux.annotation.exception.DuplicateAnnotatedMembersException;
+import com.nickrammos.jflux.annotation.exception.InvalidAnnotatedType;
+import com.nickrammos.jflux.annotation.exception.MissingAnnotatedMemberException;
 import com.nickrammos.jflux.domain.Point;
-import com.nickrammos.jflux.exception.AnnotationProcessingException;
-import com.nickrammos.jflux.exception.DuplicateAnnotatedMembersException;
-import com.nickrammos.jflux.exception.InvalidAnnotatedType;
-import com.nickrammos.jflux.exception.MissingAnnotatedMemberException;
 
 /**
  * Handles conversions between annotated classes and {@link Point} instances.

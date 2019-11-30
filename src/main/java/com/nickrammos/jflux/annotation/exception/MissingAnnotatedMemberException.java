@@ -1,4 +1,4 @@
-package com.nickrammos.jflux.exception;
+package com.nickrammos.jflux.annotation.exception;
 
 import java.lang.annotation.Annotation;
 

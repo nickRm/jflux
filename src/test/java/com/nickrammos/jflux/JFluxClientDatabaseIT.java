@@ -3,11 +3,14 @@ package com.nickrammos.jflux;
 import java.io.IOException;
 import java.util.List;
 
+import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.UnknownDatabaseException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class JFluxClientDatabaseIT {
 
@@ -61,13 +64,13 @@ public class JFluxClientDatabaseIT {
 
     @Test
     public void createDatabase_shouldThrowException_ifDatabaseAlreadyExists() {
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(DatabaseAlreadyExistsException.class).isThrownBy(
                 () -> jFluxClient.createDatabase(DatabaseManager.INTERNAL_DATABASE_NAME));
     }
 
     @Test
     public void dropDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
-        assertThatIllegalArgumentException().isThrownBy(
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.dropDatabase("non_existent_db"));
     }
 }

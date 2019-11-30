@@ -23,11 +23,12 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import com.nickrammos.jflux.api.converter.ApiResponseConverter;
+import com.nickrammos.jflux.api.exception.IllegalStatementException;
+import com.nickrammos.jflux.api.exception.InfluxClientException;
 import com.nickrammos.jflux.api.response.ApiResponse;
 import com.nickrammos.jflux.api.response.QueryResult;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
-import com.nickrammos.jflux.exception.InfluxClientException;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -111,13 +112,14 @@ public final class JFluxHttpClient implements AutoCloseable {
      *
      * @return the query result, or {@code null} if no results
      *
-     * @throws IOException if query execution fails
+     * @throws IllegalStatementException if the query format is invalid
+     * @throws IOException               if query execution fails
      * @see #queryMultipleSeries(String)
      * @see #batchQuery(String)
      */
     public Measurement query(String query) throws IOException {
         if (MULTI_SERIES_PATTERN.matcher(query).matches()) {
-            throw new IllegalArgumentException("Query cannot span multiple measurements");
+            throw new IllegalStatementException("Query cannot span multiple measurements");
         }
 
         List<Measurement> measurements = queryMultipleSeries(query).getResults();
@@ -132,21 +134,22 @@ public final class JFluxHttpClient implements AutoCloseable {
      * <p><blockquote><pre>{@code
      * SELECT * FROM measurement_1, measurement_2
      * }</pre></blockquote><p>
-     * Note that while single serie queries are possible with this method, the responsibility of
+     * Note that while single series queries are possible with this method, the responsibility of
      * unwrapping the result falls then on the caller. For a more convenient way of executing
-     * single serie queries see {@link #query(String)}.
+     * single series queries see {@link #query(String)}.
      *
      * @param query the query to execute
      *
      * @return the query result
      *
-     * @throws IOException if query execution fails
+     * @throws IllegalStatementException if the query format is invalid
+     * @throws IOException               if query execution fails
      * @see #query(String)
      * @see #batchQuery(String)
      */
     public QueryResult queryMultipleSeries(String query) throws IOException {
         if (query.contains(";")) {
-            throw new IllegalArgumentException("Query cannot contain multiple statements");
+            throw new IllegalStatementException("Query cannot contain multiple statements");
         }
 
         return batchQuery(query).getResults().get(0);
@@ -160,22 +163,23 @@ public final class JFluxHttpClient implements AutoCloseable {
      * <p><blockquote><pre>{@code
      * SELECT * FROM measurement_1; SELECT * FROM measurement_2, measurement_3;
      * }</pre></blockquote><p>
-     * Note that while single statement and/or single serie queries are also possible with this
+     * Note that while single statement and/or single series queries are also possible with this
      * method, the responsibility of unwrapping the result falls then on the caller. For more
-     * convenient ways of executing single statement and single serie queries see
+     * convenient ways of executing single statement and single series queries see
      * {@link #query(String)} and {@link #queryMultipleSeries(String)}.
      *
      * @param query the query to execute
      *
      * @return the query result
      *
-     * @throws IOException if query execution fails
+     * @throws IllegalStatementException if the query format is invalid
+     * @throws IOException               if query execution fails
      * @see #query(String)
      * @see #queryMultipleSeries(String)
      */
     public ApiResponse batchQuery(String query) throws IOException {
         if (SELECT_INTO_PATTERN.matcher(query).matches()) {
-            throw new IllegalArgumentException("Cannot execute 'SELECT INTO' as query");
+            throw new IllegalStatementException("Cannot execute 'SELECT INTO' as query");
         }
 
         ApiResponse response = callApi(service::query, query);

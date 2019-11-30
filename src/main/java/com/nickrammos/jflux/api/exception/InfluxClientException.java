@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nickrammos.jflux.exception;
+package com.nickrammos.jflux.api.exception;
 
 /**
  * Thrown to indicate that a call to the InfluxDB API was incorrect (e.g. syntax error or wrong

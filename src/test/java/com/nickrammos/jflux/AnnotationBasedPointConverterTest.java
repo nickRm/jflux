@@ -5,10 +5,10 @@ import java.time.Instant;
 import com.nickrammos.jflux.annotation.Field;
 import com.nickrammos.jflux.annotation.Tag;
 import com.nickrammos.jflux.annotation.Timestamp;
+import com.nickrammos.jflux.annotation.exception.DuplicateAnnotatedMembersException;
+import com.nickrammos.jflux.annotation.exception.InvalidAnnotatedType;
+import com.nickrammos.jflux.annotation.exception.MissingAnnotatedMemberException;
 import com.nickrammos.jflux.domain.Point;
-import com.nickrammos.jflux.exception.DuplicateAnnotatedMembersException;
-import com.nickrammos.jflux.exception.InvalidAnnotatedType;
-import com.nickrammos.jflux.exception.MissingAnnotatedMemberException;
 
 import org.junit.jupiter.api.Test;
 
