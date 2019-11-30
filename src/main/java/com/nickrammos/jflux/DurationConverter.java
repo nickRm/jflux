@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 final class DurationConverter {
 
+    private static final int FULL_FORMAT_PARTS = 3;
+
     /**
      * Parses a duration literal into an instance of {@link Duration}.
      * <p>
@@ -30,7 +32,9 @@ final class DurationConverter {
         }
 
         String[] values = durationLiteral.split("[hms]");
-        long hours = values.length == 3 ? Long.parseLong(values[values.length - 3]) : 0;
+        long hours = values.length == FULL_FORMAT_PARTS ?
+                Long.parseLong(values[values.length - FULL_FORMAT_PARTS]) :
+                0;
         long minutes = values.length >= 2 ? Long.parseLong(values[values.length - 2]) : 0;
         long seconds = Long.parseLong(values[values.length - 1]);
 
