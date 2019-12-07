@@ -1,6 +1,9 @@
 package com.nickrammos.jflux;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
 
 import com.nickrammos.jflux.annotation.Field;
 import com.nickrammos.jflux.annotation.Tag;
@@ -130,5 +133,125 @@ public class AnnotationBasedPointConverterTest {
         };
         assertThatExceptionOfType(InvalidAnnotatedType.class).isThrownBy(
                 () -> converter.toPoint(o));
+    }
+
+    @Test
+    public void fromPoint_shouldThrowException_ifPointIsNull() {
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> converter.fromPoint(null, Object.class));
+    }
+
+    @Test
+    public void fromPoint_shouldThrowException_ifTargetTypeIsNull() {
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> converter.fromPoint(new Point.Builder().build(), null));
+    }
+
+    @Test
+    public void fromPoint_shouldSetTimestampCorrectly() {
+        // Given
+        Instant timestamp = Instant.now();
+        Point point = new Point.Builder().timestamp(timestamp).build();
+
+        // When
+        TestAnnotatedClass result = converter.fromPoint(point, TestAnnotatedClass.class);
+
+        // Then
+        assertThat(result.timestamp).isEqualTo(timestamp);
+    }
+
+    @Test
+    public void fromPoint_shouldThrowException_ifTimestampIsIncorrectType() {
+        Point point = new Point.Builder().timestamp(Instant.now()).build();
+        assertThatExceptionOfType(InvalidAnnotatedType.class).isThrownBy(
+                () -> converter.fromPoint(point, TestAnnotatedClassWithDateAsTimestamp.class));
+    }
+
+    @Test
+    public void fromPoint_shouldSetFieldsCorrectly() {
+        // Given
+        int fieldValue = 123;
+        Map<String, Object> fields = Collections.singletonMap("a_field", fieldValue);
+        Point point = new Point.Builder().fields(fields).build();
+
+        // When
+        TestAnnotatedClass result = converter.fromPoint(point, TestAnnotatedClass.class);
+
+        // Then
+        assertThat(result.aField).isEqualTo(fieldValue);
+    }
+
+    @Test
+    public void fromPoint_shouldThrowException_ifFieldIsIncorrectType() {
+        // Given
+        Map<String, Object> fields = Collections.singletonMap("a_field", true);
+        Point point = new Point.Builder().fields(fields).build();
+
+        // When/Then
+        assertThatExceptionOfType(InvalidAnnotatedType.class).isThrownBy(
+                () -> converter.fromPoint(point, TestAnnotatedClass.class));
+    }
+
+    @Test
+    public void fromPoint_shouldSetTagsCorrectly() {
+        // Given
+        String tagValue = "tag_value";
+        Map<String, String> tags = Collections.singletonMap("a_tag", tagValue);
+        Point point = new Point.Builder().tags(tags).build();
+
+        // When
+        TestAnnotatedClass result = converter.fromPoint(point, TestAnnotatedClass.class);
+
+        // Then
+        assertThat(result.aTag).isEqualTo(tagValue);
+    }
+
+    @Test
+    public void fromPoint_shouldThrowException_ifTagIsIncorrectType() {
+        // Given
+        Map<String, String> tags = Collections.singletonMap("a_tag", "tag_value");
+        Point point = new Point.Builder().tags(tags).build();
+
+        // When/Then
+        assertThatExceptionOfType(InvalidAnnotatedType.class).isThrownBy(
+                () -> converter.fromPoint(point, TestAnnotatedClassWithNonStringTag.class));
+    }
+
+    @Test
+    public void fromPoint_shouldNotAffectNonAnnotatedFields() {
+        // Given
+        Point point = new Point.Builder().build();
+
+        // When
+        TestAnnotatedClass result = converter.fromPoint(point, TestAnnotatedClass.class);
+
+        // Then
+        assertThat(result.nonAnnotatedField).isEqualTo("default_value");
+    }
+
+    private static class TestAnnotatedClass {
+
+        @Timestamp
+        private Instant timestamp;
+
+        @Field
+        private Integer aField;
+
+        @Tag
+        private String aTag;
+
+        private String nonAnnotatedField = "default_value";
+    }
+
+    private static class TestAnnotatedClassWithDateAsTimestamp {
+
+        @Timestamp
+        private Date timestamp;
+    }
+
+    private static class TestAnnotatedClassWithNonStringTag {
+
+        @Tag
+        private Integer aTag;
     }
 }
