@@ -89,7 +89,7 @@ final class LineProtocolConverter {
         points.forEach(point -> {
             String fieldSet = collectKeyValuePairs(point.getFields());
             if (point.getTimestamp() != null) {
-                fieldSet += ' ' + point.getTimestamp().toEpochMilli();
+                fieldSet += " " + point.getTimestamp().toEpochMilli();
             }
             pointStringJoiner.add(fieldSet);
         });
