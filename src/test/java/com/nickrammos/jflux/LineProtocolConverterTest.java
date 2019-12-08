@@ -1,5 +1,6 @@
 package com.nickrammos.jflux;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,8 +21,10 @@ public class LineProtocolConverterTest {
     public void toLineProtocol_shouldConstructLineProtocol_forSinglePoint() {
         // Given
         String measurementName = "some_measurement";
+        Instant timestamp = Instant.now();
         Point point = new Point.Builder().fields(Collections.singletonMap("some_field", 1))
                 .tags(Collections.singletonMap("some_tag", "some value"))
+                .timestamp(timestamp)
                 .build();
 
         // When
@@ -30,7 +33,7 @@ public class LineProtocolConverterTest {
 
         // Then
         assertThat(lineProtocols).containsExactly(
-                "some_measurement,some_tag=some\\ value some_field=1");
+                "some_measurement,some_tag=some\\ value some_field=1 " + timestamp.toEpochMilli());
     }
 
     @Test

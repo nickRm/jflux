@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.nickrammos.jflux.annotation.Field;
+import com.nickrammos.jflux.annotation.Tag;
+import com.nickrammos.jflux.annotation.Timestamp;
 import com.nickrammos.jflux.annotation.exception.AnnotationProcessingException;
 import com.nickrammos.jflux.api.JFluxHttpClient;
 import com.nickrammos.jflux.api.response.ResponseMetadata;
@@ -430,6 +433,33 @@ public final class JFluxClient implements AutoCloseable {
         lineProtocolConverter.toLineProtocol(measurementName, points)
                 .forEach(lineProtocol -> apiCaller.callApi(
                         () -> httpClient.write(databaseName, retentionPolicyName, lineProtocol)));
+    }
+
+    /**
+     * Retrieves all points for the specified class.
+     * <p>
+     * The measurement name is read from the class name, or the
+     * {@link com.nickrammos.jflux.annotation.Measurement} annotation if present. The resulting
+     * points are converted to instances of the class, setting the values of fields annotated with
+     * {@link Timestamp}, {@link Field}, and {@link Tag}.
+     *
+     * @param databaseName the database where the measurement is found, not {@code null}
+     * @param targetType   the class to convert the results to, not {@code null}
+     * @param <T>          type of the results
+     *
+     * @return the points converted to instance of {@code targetType}, or an empty list if no
+     * results
+     *
+     * @throws IllegalArgumentException if {@code databaseName} or {@code targetType} is {@code
+     *                                  null}
+     * @throws UnknownDatabaseException if the database cannot be found
+     * @see AnnotationBasedPointConverter
+     */
+    public <T> List<T> getAllPoints(String databaseName, Class<T> targetType) {
+        String measurementName = namingStrategy.getMeasurementName(targetType);
+        return getAllPoints(databaseName, measurementName).stream()
+                .map(point -> annotationBasedPointConverter.fromPoint(point, targetType))
+                .collect(Collectors.toList());
     }
 
     /**

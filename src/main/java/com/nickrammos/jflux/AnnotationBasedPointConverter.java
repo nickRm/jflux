@@ -1,5 +1,7 @@
 package com.nickrammos.jflux;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -104,6 +106,8 @@ final class AnnotationBasedPointConverter {
             value = field.get(o);
         } catch (IllegalAccessException e) {
             throw new AnnotationProcessingException("Could not get field value", e);
+        } finally {
+            field.setAccessible(false);
         }
 
         if (value == null) {
@@ -115,6 +119,88 @@ final class AnnotationBasedPointConverter {
         }
         else {
             throw new InvalidAnnotatedType(field, type);
+        }
+    }
+
+    /**
+     * Converts a point to an instance of the specified type.
+     * <p>
+     * This method sets values for fields annotated with any of {@link Timestamp}, {@link Field},
+     * or {@link Tag}. Class fields which are not annotated are not altered.
+     *
+     * @param point      the point to convert, not {@code null}
+     * @param targetType the type to convert to, not {@code null}
+     * @param <T>        the type to convert to
+     *
+     * @return an instance of the target type with the values from the point
+     *
+     * @throws IllegalArgumentException      if either {@code point} or {@code targetType} is
+     *                                       {@code null}
+     * @throws AnnotationProcessingException if the target class is not annotated correctly, cannot
+     *                                       be instantiated, or its fields cannot be set
+     */
+    <T> T fromPoint(Point point, Class<T> targetType) {
+        if (point == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
+
+        if (targetType == null) {
+            throw new IllegalArgumentException("Target type cannot be null");
+        }
+
+        T targetInstance = createInstance(targetType);
+
+        for (java.lang.reflect.Field field : targetType.getDeclaredFields()) {
+            setFieldValue(point, targetInstance, field);
+        }
+
+        return targetInstance;
+    }
+
+    private <T> T createInstance(Class<T> targetType) {
+        try {
+            Constructor<T> ctor = targetType.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            try {
+                return ctor.newInstance();
+            } finally {
+                ctor.setAccessible(false);
+            }
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
+            throw new AnnotationProcessingException("Could not instantiate target class", e);
+        }
+    }
+
+    private <T> void setFieldValue(Point point, T targetInstance, java.lang.reflect.Field field) {
+        try {
+            Object value;
+            if (field.isAnnotationPresent(Timestamp.class)) {
+                value = point.getTimestamp();
+            }
+            else if (field.isAnnotationPresent(Field.class)) {
+                String fieldName = namingStrategy.getFieldName(field);
+                value = point.getFields().get(fieldName);
+            }
+            else if (field.isAnnotationPresent(Tag.class)) {
+                String tagName = namingStrategy.getTagName(field);
+                value = point.getTags().get(tagName);
+            }
+            else {
+                // Do not touch non-annotated fields.
+                return;
+            }
+
+            field.setAccessible(true);
+            try {
+                field.set(targetInstance, value);
+            } catch (IllegalArgumentException e) {
+                throw new InvalidAnnotatedType(field, value.getClass());
+            }
+        } catch (IllegalAccessException e) {
+            throw new AnnotationProcessingException("Could not set field value", e);
+        } finally {
+            field.setAccessible(false);
         }
     }
 }

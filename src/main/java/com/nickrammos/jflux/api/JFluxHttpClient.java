@@ -31,6 +31,7 @@ import com.nickrammos.jflux.api.response.ResponseMetadata;
 import com.nickrammos.jflux.domain.Measurement;
 
 import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.slf4j.Logger;
@@ -290,8 +291,13 @@ public final class JFluxHttpClient implements AutoCloseable {
          * @return the new client instance
          */
         public JFluxHttpClient build() {
+            OkHttpClient okHttpClient =
+                    new OkHttpClient.Builder().addInterceptor(new InfluxRequestInterceptor())
+                            .build();
+
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(host)
+                    .client(okHttpClient)
                     .build();
             InfluxHttpService service = retrofit.create(InfluxHttpService.class);
             JFluxHttpClient client = new JFluxHttpClient(service, new ApiResponseConverter());
