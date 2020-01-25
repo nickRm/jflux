@@ -11,6 +11,9 @@
 - [ ] Checkstyle passes
 - [ ] No new compiler warnings introduced
 - [ ] Code is formatted according to the project settings
-- [ ] Docs (both text and Javadoc) have been updated as required
+- [ ] Docs (both textual and Javadoc) have been updated as required
+- [ ] Version has been updated as appropriate
+
+See also `CONTRIBUTING.md` for more details.
 
 ## Other relevant information
