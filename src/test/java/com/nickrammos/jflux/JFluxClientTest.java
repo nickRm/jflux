@@ -379,15 +379,45 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void write_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(new Point.Builder().build()));
+    }
+
+    @Test
     public void write_shouldThrowException_ifInputIsNull() {
         assertThatIllegalArgumentException().isThrownBy(
                 () -> jFluxClient.write("some_db", (Object) null));
     }
 
     @Test
+    public void writeMultiple_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(Collections.emptyList()));
+    }
+
+    @Test
+    public void writeToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(new Point.Builder().build(), "some_rp"));
+    }
+
+    @Test
     public void writeToRetentionPolicy_shouldThrowException_ifInputIsNull() {
         assertThatIllegalArgumentException().isThrownBy(
                 () -> jFluxClient.write("some_db", (Object) null, "some_rp"));
+    }
+
+    @Test
+    public void writeMultipleToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(Collections.emptyList(), "some_rp"));
+    }
+
+    @Test
+    public void writePoint_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoint("some_measurement", new Point.Builder().build()));
     }
 
     @Test
@@ -413,6 +443,13 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void writePointToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoint("some_measurement", new Point.Builder().build(),
+                        "some_rp"));
+    }
+
+    @Test
     public void writePointToRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
         // Given
         String databaseName = "some_db";
@@ -428,8 +465,20 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
                 () -> jFluxClient.writePoint(databaseName, "some_measurement", point,
-                        retentionPolicyName
-                ));
+                        retentionPolicyName));
+    }
+
+    @Test
+    public void writePoints_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoints("some_measurement", Collections.emptyList()));
+    }
+
+    @Test
+    public void writePointsToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoints("some_measurement", Collections.emptyList(),
+                        "some_rp"));
     }
 
     @Test
