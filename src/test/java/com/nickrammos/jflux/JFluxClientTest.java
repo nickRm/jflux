@@ -387,7 +387,7 @@ public class JFluxClientTest {
     @Test
     public void writeToRetentionPolicy_shouldThrowException_ifInputIsNull() {
         assertThatIllegalArgumentException().isThrownBy(
-                () -> jFluxClient.write("some_db", "some_rp", (Object) null));
+                () -> jFluxClient.write("some_db", (Object) null, "some_rp"));
     }
 
     @Test
@@ -427,8 +427,9 @@ public class JFluxClientTest {
 
         // When
         assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
-                () -> jFluxClient.writePoint(databaseName, "some_measurement", retentionPolicyName,
-                        point));
+                () -> jFluxClient.writePoint(databaseName, "some_measurement", point,
+                        retentionPolicyName
+                ));
     }
 
     @Test
