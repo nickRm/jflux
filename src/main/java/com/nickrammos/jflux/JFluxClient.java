@@ -695,6 +695,25 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
+     * Alias for {@link #getAllPoints(String, Class)} using a preselected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param targetType the class to convert to, not {@code null}
+     * @param <T>        type of the results
+     *
+     * @return the points converted to instances of {@code targetType}, or an empty list if no
+     * results
+     *
+     * @throws NoDatabaseSelectedException if no database selected
+     */
+    public <T> List<T> getAllPoints(Class<T> targetType) {
+        assertDatabaseHasBeenSelected();
+        return getAllPoints(currentDatabase, targetType);
+    }
+
+    /**
      * Retrieves all points for the specified class.
      * <p>
      * The measurement name is read from the class name, or the
@@ -719,6 +738,24 @@ public final class JFluxClient implements AutoCloseable {
         return getAllPoints(databaseName, measurementName).stream()
                 .map(point -> annotationBasedPointConverter.fromPoint(point, targetType))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Alias for {@link #getAllPoints(String, String)} using a preselected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param measurementName the measurement to query, not {@code null}
+     *
+     * @return the retrieved points, or an empty list if no result or measurement does not exist
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     * @throws IllegalArgumentException    if the measurement name is {@code null}
+     */
+    public List<Point> getAllPoints(String measurementName) {
+        assertDatabaseHasBeenSelected();
+        return getAllPoints(currentDatabase, measurementName);
     }
 
     /**

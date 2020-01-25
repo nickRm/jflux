@@ -482,40 +482,9 @@ public class JFluxClientTest {
     }
 
     @Test
-    public void getAllPoints_shouldThrowException_ifDatabaseNameIsNull() {
-        assertThatIllegalArgumentException().isThrownBy(
-                () -> jFluxClient.getAllPoints(null, "some_measurement"));
-    }
-
-    @Test
-    public void getAllPoints_shouldThrowException_ifDatabaseDoesNotExist() {
-        // Given
-        String dbName = "some_db";
-        when(databaseManager.databaseExists(dbName)).thenReturn(false);
-
-        // When
-        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
-                () -> jFluxClient.getAllPoints(dbName, "some_measurement"));
-    }
-
-    @Test
-    public void getAllPoints_shouldThrowException_ifMeasurementNameIsNull() {
-        assertThatIllegalArgumentException().isThrownBy(
-                () -> jFluxClient.getAllPoints("db_name", (String) null));
-    }
-
-    @Test
-    public void getAllPoints_shouldReturnEmptyList_ifNoResults() throws IOException {
-        // Given
-        String databaseName = "some_db";
-        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
-        when(httpClient.query(anyString())).thenReturn(null);
-
-        // When
-        List<Point> points = jFluxClient.getAllPoints(databaseName, "non_existent_measurement");
-
-        // Then
-        assertThat(points).isEmpty();
+    public void getAllPointsForAnnotatedClass_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getAllPoints(Object.class));
     }
 
     @Test
@@ -551,6 +520,49 @@ public class JFluxClientTest {
 
         // When
         List<Object> points = jFluxClient.getAllPoints(databaseName, Object.class);
+
+        // Then
+        assertThat(points).isEmpty();
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getAllPoints("some_measurement"));
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifDatabaseNameIsNull() {
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints(null, "some_measurement"));
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifDatabaseDoesNotExist() {
+        // Given
+        String dbName = "some_db";
+        when(databaseManager.databaseExists(dbName)).thenReturn(false);
+
+        // When
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
+                () -> jFluxClient.getAllPoints(dbName, "some_measurement"));
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifMeasurementNameIsNull() {
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints("db_name", (String) null));
+    }
+
+    @Test
+    public void getAllPoints_shouldReturnEmptyList_ifNoResults() throws IOException {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+        when(httpClient.query(anyString())).thenReturn(null);
+
+        // When
+        List<Point> points = jFluxClient.getAllPoints(databaseName, "non_existent_measurement");
 
         // Then
         assertThat(points).isEmpty();
