@@ -123,6 +123,79 @@ class MyApp {
 }
 ```
 
+### Writing and reading data with `JFluxClient`
+
+Of course, the client also support writing and reading data to and from InfluxDB. This can be done
+either using instances of the `Point` class as a more lightweight way, or by using annotations which
+the client can use for mapping the field values.
+
+#### Writing and reading points
+
+```java
+import java.util.Collections;
+import com.nickrammos.jflux.JFluxClient;
+import com.nickrammos.jflux.domain.Point;
+
+class MyApp {
+
+    public static void main(String[] args) {
+        try (JFluxClient client = new JFluxClient.Builder("http://localhost:8086").build()) {
+            client.useDatabase("my_db");
+    
+            // Write points.
+            Point point = new Point.Builder()
+                .fields(Collections.singletonMap("some_field_name", 1))
+                .build();
+            client.writePoint("my_measurement", point, "my_retention_policy");
+    
+            // Read points from a measurement.
+            List<Point> points = client.getAllPoints("my_measurement");
+        }
+    }
+}
+```
+
+#### Writing and reading annotated objects
+
+```java
+import java.time.Instant;
+import com.nickrammos.jflux.JFluxClient;
+import com.nickrammos.jflux.annotation.Field;
+import com.nickrammos.jflux.annotation.Tag;
+import com.nickrammos.jflux.annotation.Timestamp;
+
+class MyApp {
+
+    public static void main(String[] args) {
+        try (JFluxClient client = new JFluxClient.Builder("http://localhost:8086").build()) {
+            client.useDatabase("my_db");
+    
+            // Write annotated objects.
+            MyAnnotatedObject o = new MyAnnotatedObject();
+            o.timestamp = Instant.now();
+            o.myTag = "tag_value";
+            o.myField = 1;
+            client.write(o);
+    
+            // Read annotated objects.
+            List<MyAnnotatedObject> objects = client.getAllPoints(MyAnnotatedObject.class);
+        }
+    }
+
+    private static class MyAnnotatedObject {
+    
+        @Timestamp
+        Instant timestamp;
+    
+        @Tag
+        String myTag;
+    
+        @Field
+        int myField;
+    }
+}
+```
+
 ## Known issues
 
 The client has been tested with InfluxDB OSS 1.7.7 so far.
