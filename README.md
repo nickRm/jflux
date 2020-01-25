@@ -83,6 +83,46 @@ The client also provides a method equivalent to InfluxDB's own `USE DATABASE` st
 to avoid having to specify the database for every operation (examples of this in practice follow in
 the next sections).
 
+### Managing retention policies with `JFluxClient`
+
+Retention policies support is also natively provided by the client:
+
+```java
+import java.time.Duration;
+import com.nickrammos.jflux.JFluxClient;
+import com.nickrammos.jflux.domain.RetentionPolicy;
+
+class MyApp {
+
+    public static void main(String[] args){
+        try (JFluxClient client = new JFluxClient().Builder("http://localhost:8086").build()) {
+            client.useDatabase("my_db");
+        
+            // Get all existing retention policies.
+            List<RetentionPolicy> existingRetentionPolicies = client.getRetentionPolicies();
+    
+            // Check if a specific retention policy exists.
+            boolean exists = client.retentionPolicyExists("some_rp", "some_other_db");
+        
+            // Create a new retention policy.
+            RetentionPolicy newRetentionPolicy = 
+                    new RetentionPolicy.Builder("my_rp", Duration.ofDays(1)).build();
+            client.createRetentionPolicy(newRetentionPolicy);
+    
+            // Get definition of an existing retention policy.
+            RetentionPolicy retentionPolicy = client.getRetentionPolicy("my_rp");
+        
+            // Alter a retention policy.
+            client.alterRetentionPolicy("my_rp", 
+                    newRetentionPolicy.withShardDuration(Duration.ofHours(1)));
+    
+            // Drop a retention policy.
+            client.dropRetentionPolicy("my_rp");
+        }
+    }
+}
+```
+
 ## Known issues
 
 The client has been tested with InfluxDB OSS 1.7.7 so far.
