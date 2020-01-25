@@ -12,6 +12,7 @@ import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.NoDatabaseSelectedException;
 import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
@@ -87,6 +88,15 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.dropDatabase(databaseName));
+    }
+
+    @Test
+    public void useDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
+        String databaseName = "non_existent_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(false);
+
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
+                () -> jFluxClient.useDatabase(databaseName));
     }
 
     @Test

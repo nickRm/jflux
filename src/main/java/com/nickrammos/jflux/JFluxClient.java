@@ -16,6 +16,7 @@ import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.NoDatabaseSelectedException;
 import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
@@ -41,6 +42,12 @@ public final class JFluxClient implements AutoCloseable {
     private final LineProtocolConverter lineProtocolConverter;
     private final NamingStrategy namingStrategy;
     private final AnnotationBasedPointConverter annotationBasedPointConverter;
+
+    /**
+     * The database to be used when calling methods without specifying the database. This needs to
+     * be set to something other than {@code null} before calling those methods.
+     */
+    private String currentDatabase;
 
     /**
      * Initializes a new instance, setting the required dependencies.
@@ -124,6 +131,24 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         databaseManager.dropDatabase(databaseName);
+    }
+
+    /**
+     * Selects a database to use implicitly with methods in this class.
+     * <p>
+     * This is convenience method to avoid having to specify the database to perform operations on
+     * in every method call, similar to InfluxDB's own {@code USE DATABASE} statement.
+     *
+     * @param databaseName the database to use, not {@code null}
+     *
+     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
+     * @throws UnknownDatabaseException if the specified database does not exist
+     */
+    public void useDatabase(String databaseName) {
+        if (!databaseExists(databaseName)) {
+            throw new UnknownDatabaseException(databaseName);
+        }
+        this.currentDatabase = databaseName;
     }
 
     /**
@@ -489,6 +514,19 @@ public final class JFluxClient implements AutoCloseable {
         String query = "SELECT * FROM \"" + databaseName + "\"..\"" + measurementName + '"';
         Measurement callResult = apiCaller.callApi(() -> httpClient.query(query));
         return callResult == null ? Collections.emptyList() : callResult.getPoints();
+    }
+
+    /**
+     * Verifies that a database has been selected and throws an exception if not.
+     * <p>
+     * This method is meant to help with all methods which required a preselected database.
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    private void assertDatabaseHasBeenSelected() {
+        if (currentDatabase == null) {
+            throw new NoDatabaseSelectedException();
+        }
     }
 
     @Override
