@@ -12,6 +12,7 @@ import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.domain.Version;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.NoDatabaseSelectedException;
 import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
@@ -90,6 +91,41 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void useDatabase_shouldThrowException_ifDatabaseDoesNotExist() {
+        String databaseName = "non_existent_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(false);
+
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
+                () -> jFluxClient.useDatabase(databaseName));
+    }
+
+    @Test
+    public void getRetentionPolicies_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getRetentionPolicies());
+    }
+
+    @Test
+    public void getRetentionPolicies_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+        when(retentionPolicyManager.getRetentionPolicies(databaseName)).thenReturn(
+                Collections.singletonList(retentionPolicy));
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        List<RetentionPolicy> results = jFluxClient.getRetentionPolicies();
+
+        // Then
+        assertThat(results).containsExactly(retentionPolicy);
+    }
+
+    @Test
     public void getRetentionPolicies_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -98,6 +134,33 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.getRetentionPolicies(databaseName));
+    }
+
+    @Test
+    public void getRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getRetentionPolicy("some_rp"));
+    }
+
+    @Test
+    public void getRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+        when(retentionPolicyManager.getRetentionPolicy(retentionPolicyName,
+                databaseName)).thenReturn(retentionPolicy);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        RetentionPolicy result = jFluxClient.getRetentionPolicy(retentionPolicyName);
+
+        // Then
+        assertThat(result).isEqualTo(retentionPolicy);
     }
 
     @Test
@@ -112,6 +175,28 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void retentionPolicyExists_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.retentionPolicyExists("some_rp"));
+    }
+
+    @Test
+    public void retentionPolicyExists_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When/Then
+        assertThat(jFluxClient.retentionPolicyExists(retentionPolicyName)).isTrue();
+    }
+
+    @Test
     public void retentionPolicyExists_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -120,6 +205,32 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.retentionPolicyExists("autogen", databaseName));
+    }
+
+    @Test
+    public void createRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.createRetentionPolicy(retentionPolicy));
+    }
+
+    @Test
+    public void createRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        RetentionPolicy retentionPolicyToCreate =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        jFluxClient.createRetentionPolicy(retentionPolicyToCreate);
+
+        // Then
+        verify(retentionPolicyManager).createRetentionPolicy(retentionPolicyToCreate, databaseName);
     }
 
     @Test
@@ -151,6 +262,38 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(RetentionPolicyAlreadyExistsException.class).isThrownBy(
                 () -> jFluxClient.createRetentionPolicy(retentionPolicy, databaseName));
+    }
+
+    @Test
+    public void alterRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        String retentionPolicyName = "some_rp";
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.alterRetentionPolicy(retentionPolicyName, newDefinition));
+    }
+
+    @Test
+    public void alterRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        jFluxClient.alterRetentionPolicy(retentionPolicyName, newDefinition);
+
+        // Then
+        verify(retentionPolicyManager).alterRetentionPolicy(retentionPolicyName, databaseName,
+                newDefinition);
     }
 
     @Test
@@ -186,6 +329,31 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void dropRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.dropRetentionPolicy("some_rp"));
+    }
+
+    @Test
+    public void dropRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        jFluxClient.dropRetentionPolicy(retentionPolicyName);
+
+        // Then
+        verify(retentionPolicyManager).dropRetentionPolicy(retentionPolicyName, databaseName);
+    }
+
+    @Test
     public void dropRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -211,15 +379,45 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void write_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(new Point.Builder().build()));
+    }
+
+    @Test
     public void write_shouldThrowException_ifInputIsNull() {
         assertThatIllegalArgumentException().isThrownBy(
                 () -> jFluxClient.write("some_db", (Object) null));
     }
 
     @Test
+    public void writeMultiple_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(Collections.emptyList()));
+    }
+
+    @Test
+    public void writeToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(new Point.Builder().build(), "some_rp"));
+    }
+
+    @Test
     public void writeToRetentionPolicy_shouldThrowException_ifInputIsNull() {
         assertThatIllegalArgumentException().isThrownBy(
-                () -> jFluxClient.write("some_db", "some_rp", (Object) null));
+                () -> jFluxClient.write("some_db", (Object) null, "some_rp"));
+    }
+
+    @Test
+    public void writeMultipleToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.write(Collections.emptyList(), "some_rp"));
+    }
+
+    @Test
+    public void writePoint_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoint("some_measurement", new Point.Builder().build()));
     }
 
     @Test
@@ -245,6 +443,13 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void writePointToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoint("some_measurement", new Point.Builder().build(),
+                        "some_rp"));
+    }
+
+    @Test
     public void writePointToRetentionPolicy_shouldThrowException_ifRetentionPolicyDoesNotExist() {
         // Given
         String databaseName = "some_db";
@@ -259,45 +464,27 @@ public class JFluxClientTest {
 
         // When
         assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
-                () -> jFluxClient.writePoint(databaseName, "some_measurement", retentionPolicyName,
-                        point));
+                () -> jFluxClient.writePoint(databaseName, "some_measurement", point,
+                        retentionPolicyName));
     }
 
     @Test
-    public void getAllPoints_shouldThrowException_ifDatabaseNameIsNull() {
-        assertThatIllegalArgumentException().isThrownBy(
-                () -> jFluxClient.getAllPoints(null, "some_measurement"));
+    public void writePoints_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoints("some_measurement", Collections.emptyList()));
     }
 
     @Test
-    public void getAllPoints_shouldThrowException_ifDatabaseDoesNotExist() {
-        // Given
-        String dbName = "some_db";
-        when(databaseManager.databaseExists(dbName)).thenReturn(false);
-
-        // When
-        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
-                () -> jFluxClient.getAllPoints(dbName, "some_measurement"));
+    public void writePointsToRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.writePoints("some_measurement", Collections.emptyList(),
+                        "some_rp"));
     }
 
     @Test
-    public void getAllPoints_shouldThrowException_ifMeasurementNameIsNull() {
-        assertThatIllegalArgumentException().isThrownBy(
-                () -> jFluxClient.getAllPoints("db_name", (String) null));
-    }
-
-    @Test
-    public void getAllPoints_shouldReturnEmptyList_ifNoResults() throws IOException {
-        // Given
-        String databaseName = "some_db";
-        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
-        when(httpClient.query(anyString())).thenReturn(null);
-
-        // When
-        List<Point> points = jFluxClient.getAllPoints(databaseName, "non_existent_measurement");
-
-        // Then
-        assertThat(points).isEmpty();
+    public void getAllPointsForAnnotatedClass_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getAllPoints(Object.class));
     }
 
     @Test
@@ -333,6 +520,49 @@ public class JFluxClientTest {
 
         // When
         List<Object> points = jFluxClient.getAllPoints(databaseName, Object.class);
+
+        // Then
+        assertThat(points).isEmpty();
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getAllPoints("some_measurement"));
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifDatabaseNameIsNull() {
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints(null, "some_measurement"));
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifDatabaseDoesNotExist() {
+        // Given
+        String dbName = "some_db";
+        when(databaseManager.databaseExists(dbName)).thenReturn(false);
+
+        // When
+        assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
+                () -> jFluxClient.getAllPoints(dbName, "some_measurement"));
+    }
+
+    @Test
+    public void getAllPoints_shouldThrowException_ifMeasurementNameIsNull() {
+        assertThatIllegalArgumentException().isThrownBy(
+                () -> jFluxClient.getAllPoints("db_name", (String) null));
+    }
+
+    @Test
+    public void getAllPoints_shouldReturnEmptyList_ifNoResults() throws IOException {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+        when(httpClient.query(anyString())).thenReturn(null);
+
+        // When
+        List<Point> points = jFluxClient.getAllPoints(databaseName, "non_existent_measurement");
 
         // Then
         assertThat(points).isEmpty();

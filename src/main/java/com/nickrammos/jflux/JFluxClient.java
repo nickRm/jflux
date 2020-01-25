@@ -16,6 +16,7 @@ import com.nickrammos.jflux.domain.Measurement;
 import com.nickrammos.jflux.domain.Point;
 import com.nickrammos.jflux.domain.RetentionPolicy;
 import com.nickrammos.jflux.exception.DatabaseAlreadyExistsException;
+import com.nickrammos.jflux.exception.NoDatabaseSelectedException;
 import com.nickrammos.jflux.exception.RetentionPolicyAlreadyExistsException;
 import com.nickrammos.jflux.exception.UnknownDatabaseException;
 import com.nickrammos.jflux.exception.UnknownRetentionPolicyException;
@@ -41,6 +42,12 @@ public final class JFluxClient implements AutoCloseable {
     private final LineProtocolConverter lineProtocolConverter;
     private final NamingStrategy namingStrategy;
     private final AnnotationBasedPointConverter annotationBasedPointConverter;
+
+    /**
+     * The database to be used when calling methods without specifying the database. This needs to
+     * be set to something other than {@code null} before calling those methods.
+     */
+    private String currentDatabase;
 
     /**
      * Initializes a new instance, setting the required dependencies.
@@ -127,6 +134,39 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
+     * Selects a database to use implicitly with methods in this class.
+     * <p>
+     * This is convenience method to avoid having to specify the database to perform operations on
+     * in every method call, similar to InfluxDB's own {@code USE DATABASE} statement.
+     *
+     * @param databaseName the database to use, not {@code null}
+     *
+     * @throws IllegalArgumentException if {@code databaseName} is {@code null}
+     * @throws UnknownDatabaseException if the specified database does not exist
+     */
+    public void useDatabase(String databaseName) {
+        if (!databaseExists(databaseName)) {
+            throw new UnknownDatabaseException(databaseName);
+        }
+        this.currentDatabase = databaseName;
+    }
+
+    /**
+     * Gets all the retention policies defined on the currently selected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @return the selected database's retention policies
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    public List<RetentionPolicy> getRetentionPolicies() {
+        assertDatabaseHasBeenSelected();
+        return getRetentionPolicies(currentDatabase);
+    }
+
+    /**
      * Gets all the retention policies defined on the specified database.
      *
      * @param databaseName name of the database to check, not {@code null}
@@ -140,6 +180,24 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.getRetentionPolicies(databaseName);
+    }
+
+    /**
+     * Gets the definition of the specified retention policy.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicyName the retention policy to get
+     *
+     * @return the retention policy definition, or {@code null} if not found
+     *
+     * @throws IllegalArgumentException    if {@code retentionPolicyName} is {@code null}
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    public RetentionPolicy getRetentionPolicy(String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        return getRetentionPolicy(retentionPolicyName, currentDatabase);
     }
 
     /**
@@ -159,6 +217,24 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.getRetentionPolicy(retentionPolicyName, databaseName);
+    }
+
+    /**
+     * Returns a value indicating whether the specified retention policy exists on the selected
+     * database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicyName the retention policy to check
+     *
+     * @return {@code true} if the retention policy exists, {@code false} otherwise
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    public boolean retentionPolicyExists(String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        return retentionPolicyExists(retentionPolicyName, currentDatabase);
     }
 
     /**
@@ -182,6 +258,23 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.retentionPolicyExists(retentionPolicyName, databaseName);
+    }
+
+    /**
+     * Creates a new retention policy on the selected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicy the retention policy to create
+     *
+     * @throws NoDatabaseSelectedException           if no database has been selected
+     * @throws IllegalArgumentException              if {@code retentionPolicy} is {@code null}
+     * @throws RetentionPolicyAlreadyExistsException if the retention policy already exists
+     */
+    public void createRetentionPolicy(RetentionPolicy retentionPolicy) {
+        assertDatabaseHasBeenSelected();
+        createRetentionPolicy(retentionPolicy, currentDatabase);
     }
 
     /**
@@ -213,6 +306,27 @@ public final class JFluxClient implements AutoCloseable {
      * <p>
      * Note that the name of the retention policy cannot be altered and thus the original name will
      * always be kept, even if the new definition specifies a different one.
+     * <p>
+     * Note also that a database must have been already selected with {@link #useDatabase(String)}
+     * before calling this method.
+     *
+     * @param retentionPolicyName the retention policy to alter
+     * @param newDefinition       the new definition for the retention policy
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if any of the arguments are {@code null}
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
+     */
+    public void alterRetentionPolicy(String retentionPolicyName, RetentionPolicy newDefinition) {
+        assertDatabaseHasBeenSelected();
+        alterRetentionPolicy(retentionPolicyName, currentDatabase, newDefinition);
+    }
+
+    /**
+     * Alters the specified retention policy.
+     * <p>
+     * Note that the name of the retention policy cannot be altered and thus the original name will
+     * always be kept, even if the new definition specifies a different one.
      *
      * @param retentionPolicyName the retention policy to alter
      * @param databaseName        the database the retention policy is defined on
@@ -234,6 +348,23 @@ public final class JFluxClient implements AutoCloseable {
 
         retentionPolicyManager.alterRetentionPolicy(retentionPolicyName, databaseName,
                 newDefinition);
+    }
+
+    /**
+     * Drops the specified retention policy on the selected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicyName the retention policy to drop
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if {@code retentionPolicy} is {@code null}
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
+     */
+    public void dropRetentionPolicy(String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        dropRetentionPolicy(retentionPolicyName, currentDatabase);
     }
 
     /**
@@ -260,6 +391,19 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
+     * Alias for {@link #write(Collection)} for a single object.
+     *
+     * @param data the data to write, not {@code null}
+     *
+     * @throws NoDatabaseSelectedException   if no database has been selected
+     * @throws IllegalArgumentException      if {@code data} is {@code null}
+     * @throws AnnotationProcessingException if the data object is not correctly annotated
+     */
+    public void write(Object data) {
+        write(Collections.singleton(data));
+    }
+
+    /**
      * Alias for {@link #write(String, Collection)} for a single point.
      *
      * @param databaseName the database to write to, not {@code null}
@@ -276,6 +420,22 @@ public final class JFluxClient implements AutoCloseable {
         }
 
         write(databaseName, Collections.singleton(data));
+    }
+
+    /**
+     * Writes the specified data using the specified retention policy.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param data the data to write
+     *
+     * @throws NoDatabaseSelectedException   if no database has been selected
+     * @throws AnnotationProcessingException if the data objects are not correctly annotated.
+     */
+    public void write(Collection<?> data) {
+        assertDatabaseHasBeenSelected();
+        write(currentDatabase, data);
     }
 
     /**
@@ -304,23 +464,57 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
-     * Alias for {@link #write(String, String, Collection)} for a single point.
+     * Alias for {@link #write(Collection, String)} for a single point.
+     *
+     * @param data                the data to write, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if any of the arguments is {@code null}
+     * @throws AnnotationProcessingException   if the data objects are not correctly annotated
+     * @throws UnknownRetentionPolicyException if the retenion policy does not exist
+     */
+    public void write(Object data, String retentionPolicyName) {
+        write(Collections.singleton(data), retentionPolicyName);
+    }
+
+    /**
+     * Alias for {@link #write(String, Collection, String)} for a single point.
      *
      * @param databaseName        the database to write to, not {@code null}
-     * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param data                the data to write, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
      *
      * @throws AnnotationProcessingException if the data object is not correctly annotated
      * @throws UnknownDatabaseException      if the database does not exist
      * @throws IllegalArgumentException      if the retention policy does not exist
-     * @see #writePoint(String, String, String, Point)
+     * @see #writePoint(String, String, Point, String)
      */
-    public void write(String databaseName, String retentionPolicyName, Object data) {
+    public void write(String databaseName, Object data, String retentionPolicyName) {
         if (data == null) {
             throw new IllegalArgumentException("Input cannot be null");
         }
 
-        write(databaseName, retentionPolicyName, Collections.singleton(data));
+        write(databaseName, Collections.singleton(data), retentionPolicyName);
+    }
+
+    /**
+     * Writes the specified data using the specified retention policy.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param data                the data to write
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if {@code retentionPolicyName} is {@code null}
+     * @throws AnnotationProcessingException   if the data objects are not correctly annotated
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
+     */
+    public void write(Collection<?> data, String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        write(currentDatabase, data, retentionPolicyName);
     }
 
     /**
@@ -329,15 +523,15 @@ public final class JFluxClient implements AutoCloseable {
      * The data object must be annotated in order to be converted to points and written to InfluxDB.
      *
      * @param databaseName        the database to write to, not {@code null}
-     * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param data                the data to write
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
      *
      * @throws AnnotationProcessingException if the data objects are not correctly annotated
      * @throws UnknownDatabaseException      if the database does not exist
      * @throws IllegalArgumentException      if the retention policy does not exist
-     * @see #writePoints(String, String, String, Collection)
+     * @see #writePoints(String, String, Collection, String)
      */
-    public void write(String databaseName, String retentionPolicyName, Collection<?> data) {
+    public void write(String databaseName, Collection<?> data, String retentionPolicyName) {
         if (data.isEmpty()) {
             return;
         }
@@ -347,7 +541,20 @@ public final class JFluxClient implements AutoCloseable {
         List<Point> points = data.parallelStream()
                 .map(annotationBasedPointConverter::toPoint)
                 .collect(Collectors.toList());
-        writePoints(databaseName, measurementName, retentionPolicyName, points);
+        writePoints(databaseName, measurementName, points, retentionPolicyName);
+    }
+
+    /**
+     * Alias for {@link #writePoints(String, Collection)} for a single point.
+     *
+     * @param measurementName the measurement to write to, not {@code null}
+     * @param point           the point to write, not {@code null}
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     * @throws IllegalArgumentException    if any of the arguments is {@code null}
+     */
+    public void writePoint(String measurementName, Point point) {
+        writePoints(measurementName, Collections.singleton(point));
     }
 
     /**
@@ -362,6 +569,55 @@ public final class JFluxClient implements AutoCloseable {
      */
     public void writePoint(String databaseName, String measurementName, Point point) {
         writePoints(databaseName, measurementName, Collections.singleton(point));
+    }
+
+    /**
+     * Alias for {@link #writePoints(String, Collection, String)} for a single point.
+     *
+     * @param measurementName     the measurement to write to, not {@code null}
+     * @param point               the point to write, not {@code null}
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if any of the arguments is {@code null}
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
+     */
+    public void writePoint(String measurementName, Point point, String retentionPolicyName) {
+        writePoints(measurementName, Collections.singleton(point), retentionPolicyName);
+    }
+
+    /**
+     * Alias for {@link #writePoints(String, String, Collection, String)} for a single point.
+     *
+     * @param databaseName        the database to write to, not {@code null}
+     * @param measurementName     the measurement to write to, not {@code null}
+     * @param point               the point to write
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
+     *
+     * @throws UnknownDatabaseException if the database does not exist
+     * @throws IllegalArgumentException if the retention policy does not exist
+     */
+    public void writePoint(String databaseName, String measurementName, Point point,
+            String retentionPolicyName) {
+        writePoints(databaseName, measurementName, Collections.singleton(point),
+                retentionPolicyName);
+    }
+
+    /**
+     * Writes the specified points to InfluxDB, using the default retention policy.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param measurementName the measurement to write to, not {@code null}
+     * @param points          the points to write
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     * @throws IllegalArgumentException    if {@code measurementName} is {@code null}
+     */
+    public void writePoints(String measurementName, Collection<Point> points) {
+        assertDatabaseHasBeenSelected();
+        writePoints(currentDatabase, measurementName, points);
     }
 
     /**
@@ -393,20 +649,23 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
-     * Alias for {@link #writePoints(String, String, String, Collection)} for a single point.
+     * Writes the specified points to InfluxDB.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
      *
-     * @param databaseName        the database to write to, not {@code null}
      * @param measurementName     the measurement to write to, not {@code null}
+     * @param points              the points to write
      * @param retentionPolicyName the retention policy to write to, not {@code null}
-     * @param point               the point to write
      *
-     * @throws UnknownDatabaseException if the database does not exist
-     * @throws IllegalArgumentException if the retention policy does not exist
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if any of the arguments is {@code null}
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
-    public void writePoint(String databaseName, String measurementName, String retentionPolicyName,
-            Point point) {
-        writePoints(databaseName, measurementName, retentionPolicyName,
-                Collections.singleton(point));
+    public void writePoints(String measurementName, Collection<Point> points,
+            String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        writePoints(currentDatabase, measurementName, points, retentionPolicyName);
     }
 
     /**
@@ -414,14 +673,14 @@ public final class JFluxClient implements AutoCloseable {
      *
      * @param databaseName        the database to write to, not {@code null}
      * @param measurementName     the measurement to write to, not {@code null}
-     * @param retentionPolicyName the retention policy to write to, not {@code null}
      * @param points              the points to write
+     * @param retentionPolicyName the retention policy to write to, not {@code null}
      *
      * @throws UnknownDatabaseException        if the database does not exist
      * @throws UnknownRetentionPolicyException if the retention policy does not exist
      */
-    public void writePoints(String databaseName, String measurementName, String retentionPolicyName,
-            Collection<Point> points) {
+    public void writePoints(String databaseName, String measurementName, Collection<Point> points,
+            String retentionPolicyName) {
         if (!databaseExists(databaseName)) {
             throw new UnknownDatabaseException(databaseName);
         }
@@ -433,6 +692,25 @@ public final class JFluxClient implements AutoCloseable {
         lineProtocolConverter.toLineProtocol(measurementName, points)
                 .forEach(lineProtocol -> apiCaller.callApi(
                         () -> httpClient.write(databaseName, retentionPolicyName, lineProtocol)));
+    }
+
+    /**
+     * Alias for {@link #getAllPoints(String, Class)} using a preselected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param targetType the class to convert to, not {@code null}
+     * @param <T>        type of the results
+     *
+     * @return the points converted to instances of {@code targetType}, or an empty list if no
+     * results
+     *
+     * @throws NoDatabaseSelectedException if no database selected
+     */
+    public <T> List<T> getAllPoints(Class<T> targetType) {
+        assertDatabaseHasBeenSelected();
+        return getAllPoints(currentDatabase, targetType);
     }
 
     /**
@@ -463,6 +741,24 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
+     * Alias for {@link #getAllPoints(String, String)} using a preselected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param measurementName the measurement to query, not {@code null}
+     *
+     * @return the retrieved points, or an empty list if no result or measurement does not exist
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     * @throws IllegalArgumentException    if the measurement name is {@code null}
+     */
+    public List<Point> getAllPoints(String measurementName) {
+        assertDatabaseHasBeenSelected();
+        return getAllPoints(currentDatabase, measurementName);
+    }
+
+    /**
      * Retrieves all points for the specified measurement.
      *
      * @param databaseName    the database where the measurement is found, not {@code null}
@@ -489,6 +785,19 @@ public final class JFluxClient implements AutoCloseable {
         String query = "SELECT * FROM \"" + databaseName + "\"..\"" + measurementName + '"';
         Measurement callResult = apiCaller.callApi(() -> httpClient.query(query));
         return callResult == null ? Collections.emptyList() : callResult.getPoints();
+    }
+
+    /**
+     * Verifies that a database has been selected and throws an exception if not.
+     * <p>
+     * This method is meant to help with all methods which required a preselected database.
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    private void assertDatabaseHasBeenSelected() {
+        if (currentDatabase == null) {
+            throw new NoDatabaseSelectedException();
+        }
     }
 
     @Override
