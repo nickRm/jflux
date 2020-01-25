@@ -152,6 +152,21 @@ public final class JFluxClient implements AutoCloseable {
     }
 
     /**
+     * Gets all the retention policies defined on the currently selected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @return the selected database's retention policies
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    public List<RetentionPolicy> getRetentionPolicies() {
+        assertDatabaseHasBeenSelected();
+        return getRetentionPolicies(currentDatabase);
+    }
+
+    /**
      * Gets all the retention policies defined on the specified database.
      *
      * @param databaseName name of the database to check, not {@code null}
@@ -165,6 +180,24 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.getRetentionPolicies(databaseName);
+    }
+
+    /**
+     * Gets the definition of the specified retention policy.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicyName the retention policy to get
+     *
+     * @return the retention policy definition, or {@code null} if not found
+     *
+     * @throws IllegalArgumentException    if {@code retentionPolicyName} is {@code null}
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    public RetentionPolicy getRetentionPolicy(String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        return getRetentionPolicy(retentionPolicyName, currentDatabase);
     }
 
     /**
@@ -184,6 +217,24 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.getRetentionPolicy(retentionPolicyName, databaseName);
+    }
+
+    /**
+     * Returns a value indicating whether the specified retention policy exists on the selected
+     * database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicyName the retention policy to check
+     *
+     * @return {@code true} if the retention policy exists, {@code false} otherwise
+     *
+     * @throws NoDatabaseSelectedException if no database has been selected
+     */
+    public boolean retentionPolicyExists(String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        return retentionPolicyExists(retentionPolicyName, currentDatabase);
     }
 
     /**
@@ -207,6 +258,23 @@ public final class JFluxClient implements AutoCloseable {
             throw new UnknownDatabaseException(databaseName);
         }
         return retentionPolicyManager.retentionPolicyExists(retentionPolicyName, databaseName);
+    }
+
+    /**
+     * Creates a new retention policy on the selected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicy the retention policy to create
+     *
+     * @throws NoDatabaseSelectedException           if no database has been selected
+     * @throws IllegalArgumentException              if {@code retentionPolicy} is {@code null}
+     * @throws RetentionPolicyAlreadyExistsException if the retention policy already exists
+     */
+    public void createRetentionPolicy(RetentionPolicy retentionPolicy) {
+        assertDatabaseHasBeenSelected();
+        createRetentionPolicy(retentionPolicy, currentDatabase);
     }
 
     /**
@@ -238,6 +306,27 @@ public final class JFluxClient implements AutoCloseable {
      * <p>
      * Note that the name of the retention policy cannot be altered and thus the original name will
      * always be kept, even if the new definition specifies a different one.
+     * <p>
+     * Note also that a database must have been already selected with {@link #useDatabase(String)}
+     * before calling this method.
+     *
+     * @param retentionPolicyName the retention policy to alter
+     * @param newDefinition       the new definition for the retention policy
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if any of the arguments are {@code null}
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
+     */
+    public void alterRetentionPolicy(String retentionPolicyName, RetentionPolicy newDefinition) {
+        assertDatabaseHasBeenSelected();
+        alterRetentionPolicy(retentionPolicyName, currentDatabase, newDefinition);
+    }
+
+    /**
+     * Alters the specified retention policy.
+     * <p>
+     * Note that the name of the retention policy cannot be altered and thus the original name will
+     * always be kept, even if the new definition specifies a different one.
      *
      * @param retentionPolicyName the retention policy to alter
      * @param databaseName        the database the retention policy is defined on
@@ -259,6 +348,23 @@ public final class JFluxClient implements AutoCloseable {
 
         retentionPolicyManager.alterRetentionPolicy(retentionPolicyName, databaseName,
                 newDefinition);
+    }
+
+    /**
+     * Drops the specified retention policy on the selected database.
+     * <p>
+     * Note that a database must have been already selected with {@link #useDatabase(String)} before
+     * calling this method.
+     *
+     * @param retentionPolicyName the retention policy to drop
+     *
+     * @throws NoDatabaseSelectedException     if no database has been selected
+     * @throws IllegalArgumentException        if {@code retentionPolicy} is {@code null}
+     * @throws UnknownRetentionPolicyException if the retention policy does not exist
+     */
+    public void dropRetentionPolicy(String retentionPolicyName) {
+        assertDatabaseHasBeenSelected();
+        dropRetentionPolicy(retentionPolicyName, currentDatabase);
     }
 
     /**

@@ -100,6 +100,32 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void getRetentionPolicies_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getRetentionPolicies());
+    }
+
+    @Test
+    public void getRetentionPolicies_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+        when(retentionPolicyManager.getRetentionPolicies(databaseName)).thenReturn(
+                Collections.singletonList(retentionPolicy));
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        List<RetentionPolicy> results = jFluxClient.getRetentionPolicies();
+
+        // Then
+        assertThat(results).containsExactly(retentionPolicy);
+    }
+
+    @Test
     public void getRetentionPolicies_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -108,6 +134,33 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.getRetentionPolicies(databaseName));
+    }
+
+    @Test
+    public void getRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.getRetentionPolicy("some_rp"));
+    }
+
+    @Test
+    public void getRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+        when(retentionPolicyManager.getRetentionPolicy(retentionPolicyName,
+                databaseName)).thenReturn(retentionPolicy);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        RetentionPolicy result = jFluxClient.getRetentionPolicy(retentionPolicyName);
+
+        // Then
+        assertThat(result).isEqualTo(retentionPolicy);
     }
 
     @Test
@@ -122,6 +175,28 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void retentionPolicyExists_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.retentionPolicyExists("some_rp"));
+    }
+
+    @Test
+    public void retentionPolicyExists_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When/Then
+        assertThat(jFluxClient.retentionPolicyExists(retentionPolicyName)).isTrue();
+    }
+
+    @Test
     public void retentionPolicyExists_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -130,6 +205,32 @@ public class JFluxClientTest {
         // When
         assertThatExceptionOfType(UnknownDatabaseException.class).isThrownBy(
                 () -> jFluxClient.retentionPolicyExists("autogen", databaseName));
+    }
+
+    @Test
+    public void createRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        RetentionPolicy retentionPolicy =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.createRetentionPolicy(retentionPolicy));
+    }
+
+    @Test
+    public void createRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        RetentionPolicy retentionPolicyToCreate =
+                new RetentionPolicy.Builder("some_rp", Duration.ZERO).build();
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        jFluxClient.createRetentionPolicy(retentionPolicyToCreate);
+
+        // Then
+        verify(retentionPolicyManager).createRetentionPolicy(retentionPolicyToCreate, databaseName);
     }
 
     @Test
@@ -164,6 +265,38 @@ public class JFluxClientTest {
     }
 
     @Test
+    public void alterRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        String retentionPolicyName = "some_rp";
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.alterRetentionPolicy(retentionPolicyName, newDefinition));
+    }
+
+    @Test
+    public void alterRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        RetentionPolicy newDefinition =
+                new RetentionPolicy.Builder(retentionPolicyName, Duration.ZERO).build();
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        jFluxClient.alterRetentionPolicy(retentionPolicyName, newDefinition);
+
+        // Then
+        verify(retentionPolicyManager).alterRetentionPolicy(retentionPolicyName, databaseName,
+                newDefinition);
+    }
+
+    @Test
     public void alterRetentionPolicy_shouldThrowException_ifDatabaseDoesNotExist() {
         // Given
         String databaseName = "non_existent_db";
@@ -193,6 +326,31 @@ public class JFluxClientTest {
         assertThatExceptionOfType(UnknownRetentionPolicyException.class).isThrownBy(
                 () -> jFluxClient.alterRetentionPolicy(retentionPolicyName, databaseName,
                         newDefinition));
+    }
+
+    @Test
+    public void dropRetentionPolicy_shouldThrowException_ifNoDatabaseSelected() {
+        assertThatExceptionOfType(NoDatabaseSelectedException.class).isThrownBy(
+                () -> jFluxClient.dropRetentionPolicy("some_rp"));
+    }
+
+    @Test
+    public void dropRetentionPolicy_shouldUseSelectedDatabase() {
+        // Given
+        String databaseName = "some_db";
+        when(databaseManager.databaseExists(databaseName)).thenReturn(true);
+
+        String retentionPolicyName = "some_rp";
+        when(retentionPolicyManager.retentionPolicyExists(retentionPolicyName,
+                databaseName)).thenReturn(true);
+
+        jFluxClient.useDatabase(databaseName);
+
+        // When
+        jFluxClient.dropRetentionPolicy(retentionPolicyName);
+
+        // Then
+        verify(retentionPolicyManager).dropRetentionPolicy(retentionPolicyName, databaseName);
     }
 
     @Test
