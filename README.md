@@ -61,7 +61,7 @@ import com.nickrammos.jflux.JFluxClient;
 
 class MyApp {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         try (JFluxClient client = new JFluxClient.Builder("http://localhost:8086").build()) {
             // Check if a database exists.
             boolean exists = client.databaseExists("my_db");
@@ -94,7 +94,7 @@ import com.nickrammos.jflux.domain.RetentionPolicy;
 
 class MyApp {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         try (JFluxClient client = new JFluxClient().Builder("http://localhost:8086").build()) {
             client.useDatabase("my_db");
         
