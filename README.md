@@ -1,5 +1,7 @@
 # JFlux
 
+![](https://github.com/nickRm/jflux/workflows/CI/badge.svg?branch=develop)
+
 JFlux is a Java client for [InfluxDB](https://www.influxdata.com/products/influxdb-overview/), a 
 time series database commonly used for monitoring and other things. The rationale behind the design
 of the client was to abstract away a lot of the queries needed for managing an InfluxDB instance,
