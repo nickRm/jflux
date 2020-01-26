@@ -26,4 +26,8 @@ jobs:
     - name: Unit tests
       run: mvn test -B
     - name: Integration tests
-      run: mvn verify -DskipUTs -B
+      run: mvn verify -DskipUTs -DskipCheckstyle -DskipDependencyAnalysis -B
+    - name: Checkstyle
+      run: mvn verify -DskipTests -DskipDependencyAnalysis -B
+    - name: Dependency analysis
+      run: mvn verify -DskipTests -DskipCheckstyle -B
