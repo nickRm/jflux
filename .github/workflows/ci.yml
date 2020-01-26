@@ -8,6 +8,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    
+    services:
+      influxdb:
+        image: influxdb:1.7.7
+        ports: 
+        - 8086:8086
 
     steps:
     - uses: actions/checkout@v1
@@ -19,7 +25,5 @@ jobs:
       run: mvn clean compile -B
     - name: Unit tests
       run: mvn test -B
-    - name: Start InfluxDB
-      run: docker run -p 8086:8086 influxdb:1.7.7
     - name: Integration tests
       run: mvn verify -DskipUTs -B
