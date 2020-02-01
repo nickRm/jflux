@@ -9,6 +9,16 @@ so to end up with more expressive code instead.
 
 ## Usage
 
+First step is to add the dependency to your project, e.g.:
+
+```xml
+<dependency>
+    <groupId>com.github.nickrm</groupId>
+    <artifactId>jflux</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 Recommended usage is via the `JFluxClient` class. This class abstracts away a lot of the specifics
 into reasonable methods. For example creating a database looks like this:
 
@@ -59,7 +69,7 @@ Using the client there are various methods to manage the databases in the connec
 instance:
 
 ```java
-import com.nickrammos.jflux.JFluxClient;
+import com.github.nickrm.jflux.JFluxClient;
 
 class MyApp {
 
@@ -91,8 +101,8 @@ Retention policies support is also natively provided by the client:
 
 ```java
 import java.time.Duration;
-import com.nickrammos.jflux.JFluxClient;
-import com.nickrammos.jflux.domain.RetentionPolicy;
+import com.github.nickrm.jflux.JFluxClient;
+import com.github.nickrm.jflux.domain.RetentionPolicy;
 
 class MyApp {
 
@@ -135,8 +145,8 @@ the client can use for mapping the field values.
 
 ```java
 import java.util.Collections;
-import com.nickrammos.jflux.JFluxClient;
-import com.nickrammos.jflux.domain.Point;
+import com.github.nickrm.jflux.JFluxClient;
+import com.github.nickrm.jflux.domain.Point;
 
 class MyApp {
 
@@ -161,10 +171,10 @@ class MyApp {
 
 ```java
 import java.time.Instant;
-import com.nickrammos.jflux.JFluxClient;
-import com.nickrammos.jflux.annotation.Field;
-import com.nickrammos.jflux.annotation.Tag;
-import com.nickrammos.jflux.annotation.Timestamp;
+import com.github.nickrm.jflux.JFluxClient;
+import com.github.nickrm.jflux.annotation.Field;
+import com.github.nickrm.jflux.annotation.Tag;
+import com.github.nickrm.jflux.annotation.Timestamp;
 
 class MyApp {
 
