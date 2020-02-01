@@ -25,6 +25,14 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Nick Rammos</name>
+            <email>nikolaos.rammos@gmail.com</email>
+            <url>https://github.com/nickRm</url>
+        </developer>
+    </developers>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
