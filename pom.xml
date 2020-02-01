@@ -279,11 +279,11 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>external.atlassian.jgitflow</groupId>
-                <artifactId>jgitflow-maven-plugin</artifactId>
-                <version>1.0-m5.1</version>
+                <groupId>com.amashchenko.maven.plugin</groupId>
+                <artifactId>gitflow-maven-plugin</artifactId>
+                <version>1.14.0</version>
                 <configuration>
-                    <noDeploy>true</noDeploy>
+                    <pushRemote>false</pushRemote>
                 </configuration>
             </plugin>
             <plugin>
