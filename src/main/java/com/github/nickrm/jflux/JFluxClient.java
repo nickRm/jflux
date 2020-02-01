@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
  * Provides convenient abstractions over {@link JFluxHttpClient}.
  *
  * @see JFluxHttpClient
+ * @since 1.0.0
  */
 public final class JFluxClient implements AutoCloseable {
 

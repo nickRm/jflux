@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
  * Note that only fields of type {@link java.time.Instant} can be timestamps, and that there can
  * only be one timestamp per class. If no timestamp is defined in a class, then timestamp will be
  * set by InfluxDB when writing the point.
+ *
+ * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

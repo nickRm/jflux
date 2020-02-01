@@ -32,6 +32,7 @@ import com.github.nickrm.jflux.domain.Measurement;
  * }</pre></blockquote>
  *
  * @see Builder
+ * @since 1.0.0
  */
 public final class QueryResult {
 

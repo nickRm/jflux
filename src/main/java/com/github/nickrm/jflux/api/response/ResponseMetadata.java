@@ -9,6 +9,7 @@ import com.github.nickrm.jflux.domain.Version;
  * Metadata relevant to an {@link ApiResponse}.
  *
  * @see Builder
+ * @since 1.0.0
  */
 public final class ResponseMetadata {
 

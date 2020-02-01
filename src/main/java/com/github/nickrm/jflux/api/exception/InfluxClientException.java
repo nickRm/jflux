@@ -19,6 +19,8 @@ package com.github.nickrm.jflux.api.exception;
 /**
  * Thrown to indicate that a call to the InfluxDB API was incorrect (e.g. syntax error or wrong
  * database name).
+ *
+ * @since 1.0.0
  */
 public final class InfluxClientException extends RuntimeException {
 

@@ -10,6 +10,8 @@ import com.github.nickrm.jflux.annotation.Timestamp;
 /**
  * Thrown to indicate that an annotation was applied to a member of a type incompatible with that
  * annotation (e.g. an integer field annotated with {@link Timestamp}).
+ *
+ * @since 1.0.0
  */
 public final class InvalidAnnotatedType extends AnnotationProcessingException {
 

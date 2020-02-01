@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 /**
  * The build type of an InfluxDB instance.
+ *
+ * @since 1.0.0
  */
 public enum BuildType {
 

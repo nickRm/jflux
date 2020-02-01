@@ -3,6 +3,8 @@ package com.github.nickrm.jflux.exception;
 /**
  * Thrown to indicate that an operation cannot be performed on a retention policy because the
  * retention policy does not exist.
+ *
+ * @since 1.0.0
  */
 public final class UnknownRetentionPolicyException extends RuntimeException {
 

@@ -23,6 +23,8 @@ import java.util.Map;
 
 /**
  * A collection of fields within a series.
+ *
+ * @since 1.0.0
  */
 public final class Point {
 

@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
  * <p>
  * Annotated classes can have zero or multiple members annotated as tags. Annotated class members
  * with {@code null} values are ignored.
+ *
+ * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

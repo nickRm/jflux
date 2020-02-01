@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 
 /**
  * Thrown to indicate that a required annotation is missing.
+ *
+ * @since 1.0.0
  */
 public final class MissingAnnotatedMemberException extends AnnotationProcessingException {
 

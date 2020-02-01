@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 
 /**
  * Thrown to indicate that an annotation which should only appear once, was found more than once.
+ *
+ * @since 1.0.0
  */
 public final class DuplicateAnnotatedMembersException extends AnnotationProcessingException {
 

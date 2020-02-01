@@ -24,6 +24,7 @@ import java.util.List;
  * A container of {@link Point Points}, roughly equivalent to a relational DB table.
  *
  * @see Builder
+ * @since 1.0.0
  */
 public final class Measurement {
 

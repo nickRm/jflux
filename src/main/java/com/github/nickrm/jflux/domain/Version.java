@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
  * Represents a version following semantic versioning schema.
  *
  * @see <a href="https://semver.org/">Semantic Versioning</a>
+ * @since 1.0.0
  */
 public final class Version implements Comparable<Version> {
 

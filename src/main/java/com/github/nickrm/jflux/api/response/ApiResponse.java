@@ -29,6 +29,8 @@ import java.util.Objects;
  * <p><blockquote><pre>{@code
  * SELECT * FROM measurement_1; SELECT * FROM measurement_2
  * }</pre></blockquote>
+ *
+ * @since 1.0.0
  */
 public final class ApiResponse {
 

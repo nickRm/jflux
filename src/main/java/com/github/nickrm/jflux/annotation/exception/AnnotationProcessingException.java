@@ -2,6 +2,8 @@ package com.github.nickrm.jflux.annotation.exception;
 
 /**
  * Thrown to indicate that something went wrong when processing an annotated class or object.
+ *
+ * @since 1.0.0
  */
 public class AnnotationProcessingException extends RuntimeException {
 

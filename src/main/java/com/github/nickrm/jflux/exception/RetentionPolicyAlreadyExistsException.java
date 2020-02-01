@@ -3,6 +3,8 @@ package com.github.nickrm.jflux.exception;
 /**
  * Thrown to indicate that a retention policy cannot be created because a retention policy with the
  * same name already exists on the database.
+ *
+ * @since 1.0.0
  */
 public final class RetentionPolicyAlreadyExistsException extends RuntimeException {
 

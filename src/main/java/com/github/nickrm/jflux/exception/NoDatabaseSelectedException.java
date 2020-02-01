@@ -8,6 +8,8 @@ import com.github.nickrm.jflux.JFluxClient;
  * <p>
  * This is normally fixable by calling {@link JFluxClient#useDatabase(String)} with the desired
  * database argument, before calling the operation which caused the exception.
+ *
+ * @since 1.0.0
  */
 public final class NoDatabaseSelectedException extends IllegalStateException {
 

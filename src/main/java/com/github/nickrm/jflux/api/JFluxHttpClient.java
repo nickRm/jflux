@@ -43,6 +43,7 @@ import retrofit2.Retrofit;
  * Makes calls to the InfluxDB HTTP API.
  *
  * @see Builder
+ * @since 1.0.0
  */
 public final class JFluxHttpClient implements AutoCloseable {
 

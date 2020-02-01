@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
  * <p>
  * Annotated classes must have at least one member annotated as a field. Annotated members with
  * {@code null} values are ignored. Note that only numeric and boolean types can be fields.
+ *
+ * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

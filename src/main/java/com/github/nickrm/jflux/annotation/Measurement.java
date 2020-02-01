@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
  * <p>
  * Note that this annotation is optional and classes can still be (de-)serialized without it. It is
  * mainly a means to set the measurement name.
+ *
+ * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
  * A retention policy specifies how long data is kept for.
  * <p>
  * Instance of this class are immutable.
+ *
+ * @since 1.0.0
  */
 public final class RetentionPolicy {
 
