@@ -12,11 +12,6 @@
     <description>Java client for InfluxDB</description>
     <url>https://github.com/nickRm/jflux</url>
 
-    <issueManagement>
-        <url>https://github.com/nickRm/jflux/issues</url>
-        <system>GitHub Issues</system>
-    </issueManagement>
-
     <licenses>
         <license>
             <name>Apache</name>
@@ -32,6 +27,17 @@
             <url>https://github.com/nickRm</url>
         </developer>
     </developers>
+
+    <scm>
+        <url>https://github.com/nickRm/jflux</url>
+        <connection>scm:git:git://github.com/nickRm/jflux.git</connection>
+        <developerConnection>scm:git:ssh://github.com:nickRm/jflux.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/nickRm/jflux/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
