@@ -9,6 +9,16 @@ so to end up with more expressive code instead.
 
 ## Usage
 
+First step is to add the dependency to your project, e.g.:
+
+```xml
+<dependency>
+    <groupId>com.github.nickrm</groupId>
+    <artifactId>jflux</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 Recommended usage is via the `JFluxClient` class. This class abstracts away a lot of the specifics
 into reasonable methods. For example creating a database looks like this:
 
