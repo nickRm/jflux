@@ -8,7 +8,7 @@
     <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>JFlux</name>
+    <name>${project.groupId}:${project.artifactId}</name>
     <description>Java client for InfluxDB</description>
     <url>https://github.com/nickRm/jflux</url>
 
