@@ -6,7 +6,7 @@
     <groupId>com.github.nickrm</groupId>
     <artifactId>jflux</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Java client for InfluxDB</description>
